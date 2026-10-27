@@ -116,7 +116,7 @@ public static class BackdropRenderer
         }
 
         var longest = Math.Max(size.Width, size.Height);
-        // Rounded to whole pixels; the extra pixel of an odd margin goes to the top, as in the first design.
+        // Rounded to whole pixels; the extra pixel of an odd margin goes to the top, so the margin stays balanced.
         var left = (float)Math.Round((canvasSize.Width - size.Width) / 2, MidpointRounding.AwayFromZero);
         var top = (float)((canvasSize.Height - size.Height) - Math.Round((canvasSize.Height - size.Height) / 2, MidpointRounding.AwayFromZero));
         var frame = new SKRect(left, top, left + image.Width, top + image.Height);
