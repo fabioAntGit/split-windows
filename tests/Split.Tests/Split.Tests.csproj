@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- WPF is on so the UI suites can run here too. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <RootNamespace>Split.Tests</RootNamespace>
+    <!-- The test runner is a plain console app; its Main is Program.cs. -->
+    <StartupObject />
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Split.Core\Split.Core.csproj" />
+    <ProjectReference Include="..\..\src\Split.Windows\Split.Windows.csproj" />
+    <ProjectReference Include="..\..\src\Split.App\Split.App.csproj" />
+    <ProjectReference Include="..\..\src\Split.Cli\Split.Cli.csproj" />
+  </ItemGroup>
+</Project>
