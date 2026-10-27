@@ -58,6 +58,8 @@ FidelityTests.Register();
 DataTests.Register();
 SecurityTests.Register();
 SettingsUiTests.Register();
+DocumentTests.Register();
+SecurityAudit.Register();
 
 Test("Integrity", "Originals are never changed", () =>
 {

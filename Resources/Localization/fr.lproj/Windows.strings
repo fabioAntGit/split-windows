@@ -102,3 +102,13 @@
 "Version %@" = "Version %@";
 "Windows dialogs, such as Open, always use the language of Windows." = "Les boîtes de dialogue de Windows, comme Ouvrir, utilisent toujours la langue de Windows.";
 "Windows refused: %@" = "Windows a refusé : %@";
+"Open it in a PDF reader to check. If it opens there, print it to “Microsoft Print to PDF” to repair it." = "Ouvrez-le dans un lecteur PDF pour vérifier. S’il s’ouvre, imprimez-le avec « Microsoft Print to PDF » pour le réparer.";
+"Open it in a PDF reader with the password and save an unprotected copy, then use that copy." = "Ouvrez-le dans un lecteur PDF avec le mot de passe, enregistrez une copie non protégée et utilisez cette copie.";
+"Reading %@ needs %@ or LibreOffice, and Split isn’t set to use %@." = "La lecture de %@ nécessite %@ ou LibreOffice, et Split n’est pas réglé pour utiliser %@.";
+"Reading %@ needs Word or LibreOffice, and neither is installed." = "La lecture de %@ nécessite Word ou LibreOffice, et aucun n’est installé.";
+"Split couldn’t create the PDF." = "Split n’a pas pu créer le PDF.";
+"Split couldn’t read %@ of the pictures in the document, so they were left out. Turn on “Use Word, Excel and PowerPoint” in Settings (or install LibreOffice) to keep them." = "Split n’a pas pu lire %@ des images du document : elles ont été retirées. Activez « Utiliser Word, Excel et PowerPoint » dans les Réglages (ou installez LibreOffice) pour les garder.";
+"Split couldn’t read “%@”: it is damaged or not in the format its extension says." = "Split n’a pas pu lire « %@ » : il est endommagé ou n’est pas au format indiqué par son extension.";
+"The page may be damaged or huge. Open the PDF in a PDF reader to check." = "La page est peut-être endommagée ou énorme. Ouvrez le PDF dans un lecteur PDF pour vérifier.";
+"Turn on “Use Word, Excel and PowerPoint” in Settings, or install LibreOffice: winget install -e --id TheDocumentFoundation.LibreOffice" = "Activez « Utiliser Word, Excel et PowerPoint » dans les Réglages, ou installez LibreOffice : winget install -e --id TheDocumentFoundation.LibreOffice";
+"Word couldn’t export the document (%@), so Split’s own converter was used and the layout may differ." = "Word n’a pas pu exporter le document (%@) : le convertisseur de Split a été utilisé et la mise en page peut différer.";

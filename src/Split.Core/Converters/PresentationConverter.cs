@@ -6,5 +6,10 @@ public sealed class PresentationConverter : IConversionFamily
     public IReadOnlyList<Format> Targets(Format source) =>
         source.Group() == FormatGroup.Presentation && source != Format.Key && (Engines.PowerPoint || Engines.Soffice is not null) ? [Format.Pdf] : [];
 
-    public IReadOnlyList<string> Convert(string path, Format source, Format target) => throw Pending.Error();
+    public IReadOnlyList<string> Convert(string path, Format source, Format target)
+    {
+        var outputs = OfficeBridge.PresentationToPdf(path, source);
+        Fidelity.Note(L("The PDF shows the slides; speaker notes, animations and videos stay in the presentation."));
+        return outputs;
+    }
 }

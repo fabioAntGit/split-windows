@@ -10,6 +10,8 @@
     <PackageReference Include="AngleSharp" />
     <PackageReference Include="PDFsharp" />
     <PackageReference Include="System.Security.Cryptography.Pkcs" />
+    <PackageReference Include="PDFsharp-MigraDoc" />
+    <PackageReference Include="bblanchon.PDFium.Win32" />
   </ItemGroup>
   <ItemGroup>
     <!-- The translation tables travel with every program built on the Core. -->

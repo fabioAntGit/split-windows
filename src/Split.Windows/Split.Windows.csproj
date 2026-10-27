@@ -1,8 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
+    <!-- Windows' own rich text engine reads RTF; no window is ever created. -->
+    <UseWPF>true</UseWPF>
   </PropertyGroup>
   <ItemGroup>
+    <!-- WPF leaves System.IO out of the implicit usings. -->
+    <Using Include="System.IO" />
     <ProjectReference Include="..\Split.Core\Split.Core.csproj" />
   </ItemGroup>
 </Project>

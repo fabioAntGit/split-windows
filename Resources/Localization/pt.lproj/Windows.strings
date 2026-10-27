@@ -102,3 +102,13 @@
 "Version %@" = "Versão %@";
 "Windows dialogs, such as Open, always use the language of Windows." = "As janelas do Windows, como a de Abrir, usam sempre a língua do Windows.";
 "Windows refused: %@" = "O Windows recusou: %@";
+"Open it in a PDF reader to check. If it opens there, print it to “Microsoft Print to PDF” to repair it." = "Abre-o num leitor de PDF para confirmar. Se abrir, imprime-o para “Microsoft Print to PDF” para o reparar.";
+"Open it in a PDF reader with the password and save an unprotected copy, then use that copy." = "Abre-o num leitor de PDF com a palavra-passe, grava uma cópia sem proteção e usa essa cópia.";
+"Reading %@ needs %@ or LibreOffice, and Split isn’t set to use %@." = "Para ler %@ é preciso o %@ ou o LibreOffice, e o Split não está configurado para usar o %@.";
+"Reading %@ needs Word or LibreOffice, and neither is installed." = "Para ler %@ é preciso o Word ou o LibreOffice, e nenhum está instalado.";
+"Split couldn’t create the PDF." = "O Split não conseguiu criar o PDF.";
+"Split couldn’t read %@ of the pictures in the document, so they were left out. Turn on “Use Word, Excel and PowerPoint” in Settings (or install LibreOffice) to keep them." = "O Split não conseguiu ler %@ das imagens do documento, por isso ficaram de fora. Ativa “Usar Word, Excel e PowerPoint” nas Definições (ou instala o LibreOffice) para as manter.";
+"Split couldn’t read “%@”: it is damaged or not in the format its extension says." = "O Split não conseguiu interpretar “%@”: está danificado ou não está no formato que a extensão indica.";
+"The page may be damaged or huge. Open the PDF in a PDF reader to check." = "A página pode estar danificada ou ser enorme. Abre o PDF num leitor de PDF para confirmar.";
+"Turn on “Use Word, Excel and PowerPoint” in Settings, or install LibreOffice: winget install -e --id TheDocumentFoundation.LibreOffice" = "Ativa “Usar Word, Excel e PowerPoint” nas Definições, ou instala o LibreOffice: winget install -e --id TheDocumentFoundation.LibreOffice";
+"Word couldn’t export the document (%@), so Split’s own converter was used and the layout may differ." = "O Word não conseguiu exportar o documento (%@), por isso foi usado o conversor do Split e o aspeto pode ser diferente.";

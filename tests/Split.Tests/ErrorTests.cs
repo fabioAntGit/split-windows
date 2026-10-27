@@ -81,7 +81,6 @@ public static class ErrorTests
             ExpectError("a silent video to MP3", ["has no sound"], () => Conversions.Convert(silent, Format.Mp3));
         });
 
-        Test("Errors", "A password-protected PDF and normalizing without sound", () => Skip("needs the PDF reader and the quick tools"));
 
         Test("Errors", "A web page saved as a picture is refused with the real cause", () =>
         {

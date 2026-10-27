@@ -16,15 +16,16 @@ public sealed class SpreadsheetConverter : IConversionFamily
 
     public IReadOnlyList<string> Convert(string path, Format source, Format target)
     {
-        // The PDF writer and the Excel route arrive with the document pipeline and the Office bridge.
-        if (target == Format.Pdf) throw Pending.Error();
+        // Office keeps the workbook's own look in a PDF: older formats always go through it (or LibreOffice).
+        if (target == Format.Pdf && (source is Format.Xls or Format.Ods || (source == Format.Xlsx && OfficeBridge.CanUseExcel)))
+            return [OfficeBridge.SpreadsheetToPdf(path, source)];
         if (target == Format.Xlsx && source is Format.Xls or Format.Ods)
         {
             // The program that reads the workbook writes the XLSX itself: formulas, formatting,
             // merged cells and charts stay, instead of going through a table of values.
             var converted = Output.Url(path, "xlsx");
             var directory = Output.ScratchDirectory();
-            try { File.Move(OldWorkbookToXlsx(path, directory), converted); }
+            try { File.Move(OfficeBridge.SpreadsheetToXlsx(path, source, directory), converted); }
             finally { Output.Discard(directory); }
             return [converted];
         }
@@ -53,6 +54,11 @@ public sealed class SpreadsheetConverter : IConversionFamily
                 var html = Output.Url(path, "html");
                 Output.WriteText(html, Html(sheets, Output.BaseName(path)));
                 return [html];
+            case Format.Pdf:
+                var pdf = Output.Url(path, "pdf");
+                // Tables with many columns are printed on their side.
+                PdfWriter.Write(Document(sheets), pdf, landscape: sheets.Any(s => s.Rows.Any(r => r.Count > 6)));
+                return [pdf];
             default:
                 throw new Problem(L("Spreadsheets only convert to XLSX, CSV, TSV, HTML or PDF."));
         }
@@ -82,26 +88,35 @@ public sealed class SpreadsheetConverter : IConversionFamily
                 return Xlsx.Read(path);
             default:
                 var directory = Output.ScratchDirectory();
-                try { return Xlsx.Read(OldWorkbookToXlsx(path, directory)); }
+                try { return Xlsx.Read(OfficeBridge.SpreadsheetToXlsx(path, source, directory)); }
                 finally { Output.Discard(directory); }
         }
     }
 
-    /// <summary>XLS and ODS through LibreOffice, into <paramref name="directory"/>. The Excel route belongs to the Office bridge.</summary>
-    private static string OldWorkbookToXlsx(string path, string directory)
+    /// <summary>The sheets as printable tables: 10 pt text, the first row in bold, each sheet under its name when there are several.</summary>
+    private static RichDocument Document(IReadOnlyList<Sheet> sheets)
     {
-        if (Settings.UseOfficeApps && Engines.Excel) throw Pending.Error();
-        var soffice = Engines.Require("soffice", "TheDocumentFoundation.LibreOffice");
-        var profile = Path.Combine(directory, "profile");
-        var folder = Path.Combine(directory, "converted");
-        Directory.CreateDirectory(folder);
-        // Its own profile folder, so a LibreOffice the user already has open doesn't swallow the job.
-        ProcessRunner.RunChecked(soffice, [$"-env:UserInstallation={new Uri(profile).AbsoluteUri}", "--headless", "--norestore",
-                                           "--convert-to", "xlsx", "--outdir", folder, path], L("Reading the file"), app: "LibreOffice");
-        var converted = Path.Combine(folder, Path.GetFileNameWithoutExtension(path) + ".xlsx");
-        if (!File.Exists(converted))
-            throw new Problem(L("The engine finished without errors but didn’t create the output file."), L("This usually happens when the source has no usable content (for example, a video without pictures). Try another format."));
-        return converted;
+        var document = new RichDocument();
+        foreach (var sheet in sheets.Where(s => s.Rows.Count > 0))
+        {
+            if (sheets.Count > 1)
+                document.Blocks.Add(new DocParagraph { HeadingLevel = 2, SpacingAfter = 6 }.Add(new DocRun { Text = sheet.Name, Bold = true, Size = 18 }));
+            var width = sheet.Rows.Max(r => r.Count);
+            var table = new DocTable();
+            for (var index = 0; index < sheet.Rows.Count; index++)
+            {
+                var cells = new List<DocCell>();
+                for (var column = 0; column < width; column++)
+                {
+                    var cell = new DocCell();
+                    cell.Blocks.Add(new DocParagraph().Add(new DocRun { Text = column < sheet.Rows[index].Count ? sheet.Rows[index][column] : "", Bold = index == 0, Size = 10 }));
+                    cells.Add(cell);
+                }
+                table.Rows.Add(cells);
+            }
+            document.Blocks.Add(table);
+        }
+        return document;
     }
 
     public static string Html(IReadOnlyList<Sheet> sheets, string title)

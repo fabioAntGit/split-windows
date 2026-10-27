@@ -245,7 +245,7 @@ public sealed class ImageConverter : IConversionFamily
     /// One picture in any format. <paramref name="faithful"/> says the pixels come from a file whose metadata
     /// should travel with them; <paramref name="path"/> is that file, for a JPEG that goes into a PDF untouched.
     /// </summary>
-    private static void WriteSingle(IMagickImage<ushort> source, string? path, string output, Format target, Format sourceFormat, bool faithful)
+    internal static void WriteSingle(IMagickImage<ushort> source, string? path, string output, Format target, Format sourceFormat, bool faithful)
     {
         if (target == Format.Ico)
         {

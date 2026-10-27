@@ -50,6 +50,7 @@ public static partial class Fixtures
         Archives();
         Data();
         Converters();
+        DocumentSamples();
         Misc();
     }
 
