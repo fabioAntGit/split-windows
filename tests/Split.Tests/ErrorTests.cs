@@ -6,8 +6,7 @@ using static Split.Tests.Harness;
 namespace Split.Tests;
 
 /// <summary>
-/// Every failure must say what went wrong, why, and what to do. The cases that need a real
-/// conversion (damaged or protected files, a page saved as a picture) wait for the converters.
+/// Every failure must say what went wrong, why, and what to do.
 /// </summary>
 public static class ErrorTests
 {
@@ -72,9 +71,22 @@ public static class ErrorTests
                 Check(FileCheck.Sniff(Fixtures.Url(name)) == type, $"{name}: {FileCheck.Sniff(Fixtures.Url(name)) ?? "null"} instead of {type}");
         });
 
-        Test("Errors", "Damaged or protected files", () => Skip("needs the converters and the PDF and archive readers (phase 3)"));
+        Test("Errors", "Damaged or protected files", () =>
+        {
+            var corrupt = Fixtures.Isolated("corrupt.zip", "corrupt");
+            ExpectError("a damaged ZIP", ["damaged"], () => ArchiveTools.Extract(corrupt));
+            var broken = Fixtures.Isolated("broken.mp4", "broken");
+            ExpectError("a video cut off halfway", ["incomplete"], () => Conversions.Convert(broken, Format.Mp3));
+            var silent = Fixtures.Isolated("silent.mp4", "silent");
+            ExpectError("a silent video to MP3", ["has no sound"], () => Conversions.Convert(silent, Format.Mp3));
+        });
 
-        Test("Errors", "A web page saved as a picture is refused with the real cause", () => Skip("needs the image converter (phase 3)"));
+        Test("Errors", "A password-protected PDF and normalizing without sound", () => Skip("needs the PDF reader and the quick tools"));
+
+        Test("Errors", "A web page saved as a picture is refused with the real cause", () =>
+        {
+            ExpectError("a web page saved as .jpg", ["HTML", "web page"], () => Conversions.Convert(Fixtures.Url("page.jpg"), Format.Png));
+        });
 
         Test("Errors", "Engine failures are explained in plain words", () =>
         {

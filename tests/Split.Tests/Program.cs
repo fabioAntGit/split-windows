@@ -24,6 +24,8 @@ Settings.StorePath = Path.Combine(root, "settings.json");
 // The translation tables come from the source tree; the messages the tests read are English.
 Localizer.TablesDirectory = Path.Combine(repository, "Resources", "Localization");
 Platform.Current = new WindowsPlatform();
+// The picture library takes its security policy before any test reads or writes a picture.
+Imaging.Initialize();
 // Office apps stay out of the default run.
 Settings.UseOfficeApps = false;
 Settings.KeepsMetadata = true;
@@ -48,6 +50,10 @@ LanguageTests.Register();
 WheelTests.Register();
 ErrorTests.Register();
 CoreTests.Register();
+ConversionTests.Register();
+FidelityTests.Register();
+DataTests.Register();
+SecurityTests.Register();
 
 Test("Integrity", "Originals are never changed", () =>
 {
