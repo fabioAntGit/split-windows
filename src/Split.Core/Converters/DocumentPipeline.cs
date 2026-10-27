@@ -13,4 +13,7 @@ public sealed class DocumentPipeline : IConversionFamily
     };
 
     public IReadOnlyList<string> Convert(string path, Format source, Format target) => throw Pending.Error();
+
+    /// <summary>Any text file as a string, whatever encoding it was saved in (see <see cref="TextDecoding"/>).</summary>
+    public static string ReadText(string path) => TextDecoding.Decode(File.ReadAllBytes(path)).Text;
 }
