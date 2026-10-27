@@ -51,3 +51,7 @@
 "“%@” is in OneDrive and hasn’t been downloaded to this PC yet." = "“%@” está no OneDrive e ainda não foi descarregado para este PC.";
 "“%@” is open in another app." = "“%@” está aberto noutra app.";
 "✓ Windows — Magick, PDFium and Windows OCR" = "✓ Windows — Magick, PDFium e OCR do Windows";
+"File Explorer’s “Restore” brings the files back if you need them again." = "“Restaurar” na Reciclagem do Explorador de Ficheiros recupera os ficheiros se voltares a precisar deles.";
+"Move the new files to the Recycle Bin" = "Mover os ficheiros novos para a Reciclagem";
+"Moved to the Recycle Bin" = "Movido para a Reciclagem";
+"Show in File Explorer" = "Mostrar no Explorador de Ficheiros";
