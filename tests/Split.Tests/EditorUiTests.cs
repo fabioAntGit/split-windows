@@ -100,7 +100,7 @@ public static class EditorUiTests
             var windows = Application_OpenEditors();
             Check(windows.Count == 4, $"four windows, not {windows.Count}");
             Check(windows.All(w => w is EditorWindow and AppWindow), "they are app windows");
-            Check(windows.All(w => w.ResizeMode == ResizeMode.CanResize && w.MinWidth == 780), "resizable, with the smallest size of the spec");
+            Check(windows.All(w => w.ResizeMode == ResizeMode.CanResize && w.MinWidth == 780), "resizable, with the smallest size of the editors");
             foreach (var window in windows) ((EditorWindow)window).CloseNow();
             Check(Application_OpenEditors().Count == 0, "closed");
 
