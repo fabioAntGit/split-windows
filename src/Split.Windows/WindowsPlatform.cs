@@ -5,7 +5,7 @@ using Microsoft.Win32;
 namespace Split.Windows;
 
 /// <summary>What the Core asks of Windows (see <see cref="IPlatform"/>).</summary>
-public sealed class WindowsPlatform : IPlatform
+public sealed partial class WindowsPlatform : IPlatform
 {
     private static readonly string[] OfficeProgIds = ["Word.Application", "Excel.Application", "PowerPoint.Application"];
 
@@ -13,8 +13,8 @@ public sealed class WindowsPlatform : IPlatform
 
     public bool IsOfficeInstalled(OfficeApp app) => Type.GetTypeFromProgID(OfficeProgIds[(int)app]) is not null;
 
-    // The Office bridge starts and closes the apps itself; until it exists nothing was launched.
-    public void QuitLaunchedOfficeApps() { }
+    // The apps a job started are closed when the batch ends; the ones the user had open stay as they were.
+    public void QuitLaunchedOfficeApps() => OfficeApps.QuitLaunched();
 
     /// <summary>The model that cuts out the subject ships next to the program.</summary>
     public bool CanRemoveBackground => File.Exists(Path.Combine(AppContext.BaseDirectory, "models", "isnet-general-use.onnx"));
