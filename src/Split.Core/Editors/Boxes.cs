@@ -59,7 +59,7 @@ public readonly record struct NBox(double X, double Y, double Width, double Heig
     }
 }
 
-public static class Geometry
+public static class Fitting
 {
     /// <summary>The rectangle that fits a picture of <paramref name="size"/> into <paramref name="container"/>, centred, with a margin.</summary>
     public static NBox Fit(NSz size, NSz container, double margin = 24)

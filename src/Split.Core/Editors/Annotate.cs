@@ -246,11 +246,13 @@ public static class MarkupRenderer
     public static IReadOnlyList<NBox> FaceAreas(SKBitmap image)
     {
         // Detection works on a reduced grey copy: faces are large, and small pictures are found faster.
-        using var small = EditorImages.Scaled(image, 1280);
+        var small = EditorImages.Scaled(image, 1280);
         var rgba = EditorImages.ToStraight(small);
-        var gray = new byte[small.Width * small.Height];
+        var (width, height) = (small.Width, small.Height);
+        if (!ReferenceEquals(small, image)) small.Dispose();
+        var gray = new byte[width * height];
         for (var i = 0; i < gray.Length; i++) gray[i] = (byte)(0.299 * rgba[i * 4] + 0.587 * rgba[i * 4 + 1] + 0.114 * rgba[i * 4 + 2] + 0.5);
-        return FaceAreas(Platform.Current.FindFaces(gray, small.Width, small.Height), small.Width, small.Height);
+        return FaceAreas(Platform.Current.FindFaces(gray, width, height), width, height);
     }
 }
 
