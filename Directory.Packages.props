@@ -15,5 +15,7 @@
     <PackageVersion Include="System.Security.Cryptography.Pkcs" Version="10.0.14" />
     <PackageVersion Include="PDFsharp-MigraDoc" Version="6.2.4" />
     <PackageVersion Include="bblanchon.PDFium.Win32" Version="158.0.8125" />
+    <PackageVersion Include="Microsoft.ML.OnnxRuntime" Version="1.31.0" />
+    <PackageVersion Include="ZXing.Net" Version="0.16.10" />
   </ItemGroup>
 </Project>
