@@ -241,9 +241,55 @@ public static class WheelTests
                   $"the notice should name the wheel and where to show the slices: {message.FullText}");
         }));
 
-        Test("Wheels", "The preview finds the slice under the pointer where the wheel does", () => Skip("needs the wheel's geometry (phase 5)"));
+        Test("Wheels", "The preview finds the slice under the pointer where the wheel does", () => Ui.Run(() =>
+        {
+            foreach (var size in WheelSizes.All)
+            {
+                foreach (var count in new[] { 1, 2, 5, 8, 13 })
+                {
+                    var items = Enumerable.Range(0, count).Select(i => new WheelItem(i.ToString(), $"Item {i}", null));
+                    var view = new App.WheelView(items, "", "", [], true, new WheelStyle(size, true));
+                    for (var step = 0; step < 48; step++)
+                    {
+                        var angle = step * Math.PI / 24 + 0.01;
+                        foreach (var radius in new[] { WheelLayout.InnerRadius(size) - 10, WheelLayout.InnerRadius(size) + 6, WheelLayout.OuterRadius(size) - 6 })
+                        {
+                            var found = WheelLayout.SliceAt(new Pt(radius * Math.Sin(angle), radius * Math.Cos(angle)), count, size);
+                            var at = new System.Windows.Point(view.Center.X + radius * Math.Sin(angle), view.Center.Y - radius * Math.Cos(angle));
+                            Check(found == view.IndexAt(at), $"{size}, {count} slices, {step * 360 / 48}°: the preview finds {found}, the wheel {view.IndexAt(at)}");
+                            if (radius > WheelLayout.InnerRadius(size)) Check(found == (int)(angle / (2 * Math.PI / count)) % count, $"{size}, {count} slices, {step * 360 / 48}°: not the slice the angle is in");
+                        }
+                    }
+                    Check(WheelLayout.IsOnHub(new Pt(0, 0), size) && !WheelLayout.IsOnHub(new Pt(0, WheelLayout.OuterRadius(size)), size), $"{size}: the hub");
+                }
+            }
+        }));
 
-        Test("Wheels", "The preview picture lights the chosen slice with a light veil inside its slice", () => Skip("needs the wheel's drawing (phase 5)"));
+        Test("Wheels", "The preview picture lights the chosen slice with a light veil inside its slice", () => Ui.Run(() =>
+        {
+            var look = Settings.LookColor;
+            try
+            {
+                App.Look.Color = LookColor.Black;
+                var items = Enumerable.Range(0, 6).Select(i => new WheelItem(i.ToString(), $"Item {i}", null)).ToList();
+                var image = App.WheelView.Picture(items, "Wheel", "", highlighted: 2, style: new WheelStyle());
+                var layout = WheelLayout.Make(items.Select(i => i.Title).ToList(), items.Select(i => i.Symbol).ToList(), new WheelStyle(), App.WheelView.Text);
+                var scale = image.PixelWidth / (layout.Size);
+                double Brightness(int slice, double? radius = null)
+                {
+                    var angle = (slice + 0.5) * layout.Step;
+                    var r = radius ?? layout.Inner + 16;
+                    var pixel = Ui.PixelAt(image, (int)((layout.Size / 2 + r * Math.Sin(angle)) * scale), (int)((layout.Size / 2 - r * Math.Cos(angle)) * scale));
+                    return Math.Max(pixel[0], Math.Max(pixel[1], pixel[2])) / 255.0;
+                }
+                Check(Brightness(2) > Brightness(0) + 0.1 && Brightness(2) < 0.6, $"the chosen slice should be a soft veil, brightness {Brightness(2):0.00}");
+                Check(Brightness(0) < 0.3, $"the other slices stay dark, brightness {Brightness(0):0.00}");
+                var pastRim = Brightness(2, layout.Outer + 8);
+                Check(pastRim < Brightness(2) - 0.1, $"the veil stays inside the slice, short of the rim, brightness {pastRim:0.00}");
+                Check(Ui.PixelAt(image, 1, 1)[3] == 0, "the picture is clear round the disc");
+            }
+            finally { App.Look.Color = look; }
+        }));
     }
 
     /// <summary>Runs <paramref name="body"/> with no saved arrangement, putting back whatever was there before.</summary>
