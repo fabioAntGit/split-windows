@@ -1,5 +1,6 @@
 using System.IO;
 using System.Runtime.CompilerServices;
+using System.Security.Cryptography;
 
 namespace Split.Tests;
 
@@ -41,5 +42,64 @@ public static class Harness
     /// <summary>Stops the test without failing it; the runner counts and lists it apart.</summary>
     public static void Skip(string reason) => throw new TestSkipped(reason);
 
-    // ExpectError arrives with the explained errors (Explain) in a later phase.
+    /// <summary>The body must throw an explained error mentioning every fragment (case-insensitive).</summary>
+    public static Problem? ExpectError(string label, string[] contains, Action body, [CallerLineNumber] int line = 0)
+    {
+        Checks++;
+        try
+        {
+            body();
+            Failures.Add($"{label}: should have failed with an explained error, but it worked  [line {line}]");
+            return null;
+        }
+        catch (Exception error) when (error is not TestFailure and not TestSkipped)
+        {
+            var explained = Explain.Error(error);
+            var text = (explained.FullText + " " + (explained.Technical ?? "")).ToLowerInvariant();
+            var missing = contains.Where(fragment => !text.Contains(fragment.ToLowerInvariant())).ToList();
+            if (missing.Count > 0)
+                Failures.Add($"{label}: the message doesn’t mention [{string.Join(", ", missing)}] → “{explained.FullText}”  [line {line}]");
+            ErrorLog.Seen.Add(explained);
+            return explained;
+        }
+    }
+}
+
+public static class ErrorLog
+{
+    public static readonly List<Problem> Seen = [];
+}
+
+/// <summary>Reading back what the tests wrote.</summary>
+public static class Files
+{
+    public static string Sha(string path)
+    {
+        if (Directory.Exists(path))
+        {
+            var items = Directory.EnumerateFileSystemEntries(path, "*", SearchOption.AllDirectories)
+                .Select(item => Path.GetRelativePath(path, item)).Order(StringComparer.Ordinal);
+            return string.Concat(items.Select(item => item + Sha(Path.Combine(path, item))));
+        }
+        return File.Exists(path) ? Convert.ToHexStringLower(SHA256.HashData(File.ReadAllBytes(path))) : "-";
+    }
+
+    public static string Text(string path) => File.Exists(path) ? File.ReadAllText(path) : "";
+
+    public static List<string> List(string folder) =>
+        Directory.EnumerateFileSystemEntries(folder).Where(item => !Path.GetFileName(item).StartsWith('.'))
+            .Order(StringComparer.Ordinal).ToList();
+}
+
+/// <summary>Where the project's own files are, for the checks that read the code itself.</summary>
+public static class Hostile
+{
+    public static string Project { get; set; } = "";
+
+    /// <summary>Every C# file of the app, in all its folders.</summary>
+    public static List<string> Sources() =>
+        Directory.EnumerateFiles(Path.Combine(Project, "src"), "*.cs", SearchOption.AllDirectories)
+            .Where(file => !file.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}")
+                        && !file.Contains($"{Path.DirectorySeparatorChar}bin{Path.DirectorySeparatorChar}"))
+            .Order(StringComparer.Ordinal).ToList();
 }
