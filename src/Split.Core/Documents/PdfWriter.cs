@@ -78,7 +78,7 @@ public static class PdfWriter
                 case DocPicture picture:
                     var (w, h) = Pictures.Fit(picture, width);
                     if (h > height) (w, h) = (w * height / h, height);
-                    var image = target.AddImage("base64:" + Convert.ToBase64String(picture.Data));
+                    var image = target.AddImage("base64:" + Convert.ToBase64String(Pictures.ForPdf(picture)));
                     image.Width = Unit.FromPoint(w);
                     image.Height = Unit.FromPoint(h);
                     break;

@@ -151,6 +151,9 @@ public static class DocumentTests
             Check(PdfPages(file) == 2, $"{PdfPages(file)} pages");
             var text = PdfText(file);
             Check(text.Contains("Title Split") && text.Contains("café") && text.Contains("Second page") && text.Contains("March"), $"text of the PDF: {text}");
+            using (var page = PdfiumDocument.Open(file))
+            using (var drawn = page.Render(0, 1)!)
+                Check(drawn.BoundingBox is { Width: > 400 }, "the picture is drawn at its size, not as a dot");
             using (var pdf = PdfReader.Open(file, PdfDocumentOpenMode.Import))
                 Check(Math.Abs(pdf.Pages[0].Width.Point - 595.28) < 1 && Math.Abs(pdf.Pages[0].Height.Point - 841.89) < 1, $"A4: {pdf.Pages[0].Width.Point}×{pdf.Pages[0].Height.Point}");
             var wide = new RichDocument();

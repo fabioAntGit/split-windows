@@ -90,6 +90,22 @@ public static class Pictures
         catch (Exception e) when (e is IOException or UnauthorizedAccessException or ArgumentException or NotSupportedException) { return null; }
     }
 
+    /// <summary>
+    /// The bytes PDF import reads: a PNG as plain 8-bit RGB or RGBA (the writer of a picture with few colours picks a palette,
+    /// which it can't read); a JPEG as it is.
+    /// </summary>
+    public static byte[] ForPdf(DocPicture picture)
+    {
+        if (picture.Extension != "png") return picture.Data;
+        Imaging.Initialize();
+        using var image = new MagickImage(picture.Data, new MagickReadSettings { Format = MagickFormat.Png });
+        var transparent = ImageConverter.HasTransparency(image);
+        if (!transparent) image.Alpha(AlphaAction.Remove);
+        image.Settings.SetDefine(MagickFormat.Png, "color-type", transparent ? "6" : "2");
+        image.Settings.SetDefine(MagickFormat.Png, "bit-depth", "8");
+        return image.ToByteArray(MagickFormat.Png);
+    }
+
     /// <summary>Never wider than the text column.</summary>
     public static (double Width, double Height) Fit(DocPicture picture, double maxWidth = ColumnWidth)
     {
