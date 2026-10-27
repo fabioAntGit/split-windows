@@ -146,6 +146,8 @@ public sealed class WindowsPlatform : IPlatform
         void NewItem();
         void PerformOperations();
     }
+
+    public IReadOnlyList<PixelBox> FindFaces(byte[] gray, int width, int height) => FaceFinder.Find(gray, width, height);
 }
 
 /// <summary>Finds programs where installers put them, also right after an install (before the PATH of this process knows).</summary>
