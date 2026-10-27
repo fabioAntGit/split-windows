@@ -51,3 +51,13 @@
 "“%@” is in OneDrive and hasn’t been downloaded to this PC yet." = "« %@ » est dans OneDrive et n’a pas encore été téléchargé sur ce PC.";
 "“%@” is open in another app." = "« %@ » est ouvert dans une autre app.";
 "✓ Windows — Magick, PDFium and Windows OCR" = "✓ Windows — Magick, PDFium et l’OCR de Windows";
+"JPG has no transparency, so transparent areas became white. PNG, WebP or JPEG XL keep it." = "Le JPG n’a pas de transparence, les zones transparentes sont donc devenues blanches. PNG, WebP ou JPEG XL la conservent.";
+"Open it in Calibre to check whether it is damaged." = "Ouvrez-le dans Calibre pour vérifier s’il est endommagé.";
+"Shortcuts in the archive were left out: Windows can’t recreate them." = "Les raccourcis de l’archive ont été laissés de côté : Windows ne peut pas les recréer.";
+"Split could not build the animated %@ (%@ frames)." = "Split n’a pas pu créer le %@ animé (%@ images).";
+"Split could not put the %@ images together into one %@." = "Split n’a pas pu réunir les %@ images en un seul %@.";
+"Split couldn’t draw the SVG “%@”." = "Split n’a pas pu dessiner le SVG « %@ ».";
+"Split couldn’t read “%@” as an image." = "Split n’a pas pu lire « %@ » comme image.";
+"The %@ encoder refused this image (%@ × %@ px)." = "L’encodeur %@ a refusé cette image (%@ × %@ px).";
+"The file may have syntax errors or use SVG features that aren’t supported. Open it in a web browser to check." = "Le fichier contient peut-être des erreurs de syntaxe ou utilise des fonctions SVG non prises en charge. Ouvrez-le dans un navigateur pour vérifier.";
+"The file seems damaged or incomplete (for example, a download that didn’t finish). Open it in Photos to check." = "Le fichier semble endommagé ou incomplet (par exemple, un téléchargement inachevé). Ouvrez-le dans Photos pour vérifier.";
