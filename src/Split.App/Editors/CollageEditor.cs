@@ -38,7 +38,7 @@ public sealed class CollageEditor : EditorWindow
     private const double RowHeight = 36;
 
     private readonly CollageModel model;
-    private CollageCanvas canvas;
+    private CollageCanvas canvas = null!;
     private EditorLayout layout;
     private StackPanel order = new();
 
@@ -60,7 +60,7 @@ public sealed class CollageEditor : EditorWindow
     /// <summary>Closing never asks: a collage is a quick arrangement, not work to keep.</summary>
     protected override bool HasChanges => false;
 
-    private void Sync() => Dispatcher.BeginInvoke(canvas.InvalidateVisual);
+    private void Sync() => Dispatcher.BeginInvoke(() => canvas?.InvalidateVisual());
 
     protected override void Rebuild()
     {

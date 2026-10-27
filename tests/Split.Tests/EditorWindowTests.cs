@@ -59,9 +59,10 @@ public static class EditorWindowTests
             foreach (var window in windows) ((EditorWindow)window!).CloseNow();
             Check(SingleWindows.Find(Id(EditorTool.Collage, pictures)) is not { IsVisible: true }, "closed");
 
-            EditorLauncher.Open(EditorTool.Collage, [Fixtures.Url("fake.png"), Fixtures.Url("fake.png").Replace("fake", "missing")]);
-            EditorLauncher.Open(EditorTool.PdfPages, [Fixtures.Url("fake.png").Replace("fake", "missing")]);
-            Check(SingleWindows.Find(Id(EditorTool.PdfPages, Fixtures.Url("missing.png"))) is not { IsVisible: true }, "nothing opens for a missing file");
+            var missing = CollageTests.Garbage("fake.png").Replace("fake", "missing");
+            EditorLauncher.Open(EditorTool.Collage, [CollageTests.Garbage("fake.png"), missing]);
+            EditorLauncher.Open(EditorTool.PdfPages, [missing]);
+            Check(SingleWindows.Find(Id(EditorTool.PdfPages, missing)) is not { IsVisible: true }, "nothing opens for a missing file");
         }));
 
         Test("Collage", "The window: layout choices, spacing, background, the order list", () => Ui.Run(() =>
@@ -77,13 +78,16 @@ public static class EditorWindowTests
 
             model.Style = model.Style with { Layout = CollageLayout.Row };
             window.Refresh();
+            Ui.Settle(0.1);
             Check(FindAll<Toggle>(window.Layout).Count == 0, "a row has no cells to fill");
 
             model.Style = model.Style with { Background = CollageFill.Gradient };
             window.Refresh();
+            Ui.Settle(0.1);
             Check(FindAll<Swatch>(window.Layout).Count == 10, "ten gradients to choose from");
             model.Style = model.Style with { Background = CollageFill.Transparent };
             window.Refresh();
+            Ui.Settle(0.1);
             Check(FindAll<Swatch>(window.Layout).Count == 0, "and none otherwise");
 
             var sliders = FindAll<SliderBar>(window.Layout);
@@ -122,7 +126,8 @@ public static class EditorWindowTests
                     {
                         var room = label.ActualWidth;
                         label.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
-                        Check(label.DesiredSize.Width <= room + 0.5, $"{each}: “{label.Text}” is cut to {room:0} of {label.DesiredSize.Width:0}");
+                        var needed = label.DesiredSize.Width - label.Margin.Left - label.Margin.Right;
+                        Check(needed <= room + 0.5, $"{each}: “{label.Text}” is cut to {room:0} of {needed:0}");
                     }
                     window.Close();
                     Check(!window.IsVisible, "a collage closes without asking");
@@ -212,7 +217,7 @@ public static class EditorWindowTests
             var model = new PdfOrganizerModel([Fixtures.Url("report.pdf")]);
             var window = Shown(new PdfOrganizerEditor(model, "Organize PDF"));
             Ui.Settle(0.2);
-            var buttons = FindAll<SplitButton>(window.Layout).ToDictionary(b => System.Windows.Automation.AutomationProperties.GetName(b), b => b);
+            var buttons = FindAll<SplitButton>(window.Layout).GroupBy(b => System.Windows.Automation.AutomationProperties.GetName(b) is { Length: > 0 } name ? name : (string)b.Content).ToDictionary(g => g.Key, g => g.First());
             Check(!buttons["Duplicate the Selected Pages"].IsEnabled && !buttons["Delete the Selected Pages (⌫)"].IsEnabled && !buttons["Save Only the Selected Pages…"].IsEnabled, "nothing selected, nothing to duplicate, delete or extract");
             Check(buttons["Rotate Left"].IsEnabled && buttons["Rotate Right"].IsEnabled, "turning applies to all pages when none is selected");
             model.SelectAll();
@@ -353,7 +358,7 @@ public static class EditorWindowTests
 
         Test("Edit Media", "A file that can't be edited shows why instead of an empty stage", () => Ui.Run(() =>
         {
-            var window = Shown(new MediaEditor(Fixtures.Url("fake.png"), "Edit Media — fake.png"));
+            var window = Shown(new MediaEditor(CollageTests.Garbage("fake.png"), "Edit Media — fake.png"));
             window.Model.Loaded.Wait();
             Ui.Settle(0.4);
             Check(window.Model.Failure is not null && !window.Layout.Save.IsEnabled, "nothing to export");
@@ -375,7 +380,8 @@ public static class EditorWindowTests
                     {
                         var room = label.ActualWidth;
                         label.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
-                        Check(label.DesiredSize.Width <= room + 0.5, $"{each}: “{label.Text}” is cut to {room:0} of {label.DesiredSize.Width:0}");
+                        var needed = label.DesiredSize.Width - label.Margin.Left - label.Margin.Right;
+                        Check(needed <= room + 0.5, $"{each}: “{label.Text}” is cut to {room:0} of {needed:0}");
                     }
                     window.CloseNow();
                 }

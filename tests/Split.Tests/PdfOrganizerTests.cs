@@ -102,7 +102,7 @@ public static class PdfOrganizerTests
         Test("Organize PDF", "Adding files: pictures and PDFs join, others are told about", () =>
         {
             using var model = new PdfOrganizerModel([Fixtures.Url("report.pdf")]);
-            model.AddFiles([Fixtures.Url("quadrants.jpg"), Fixtures.Url("report.pdf"), Fixtures.Url("fake.png")]);
+            model.AddFiles([Fixtures.Url("quadrants.jpg"), Fixtures.Url("report.pdf"), CollageTests.Garbage("fake.png")]);
             Check(model.Items.Count == 3 + 1 + 3 && model.Sources.Count == 3, $"{model.Items.Count} pages");
             Check(model.Note is { } note && note.Contains("fake.png") && note.StartsWith("Couldn’t add"), $"the one that failed is named: {model.Note}");
             model.AddFiles([Fixtures.Url("quadrants.png")]);

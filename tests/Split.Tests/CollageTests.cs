@@ -9,6 +9,16 @@ public static class CollageTests
 {
     private static readonly HashSet<Guid> Seen = [];
 
+    /// <summary>A file with a picture's name and no picture in it.</summary>
+    internal static string Garbage(string name)
+    {
+        var path = Path.Combine(Fixtures.Root, "_garbage", name);
+        Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+        File.WriteAllText(path, "this is not what its name says");
+        return path;
+    }
+
+
     /// <summary>The next finished job with this title that an earlier call didn't return.</summary>
     internal static ActivityEntry Finished(string title)
     {
@@ -96,7 +106,7 @@ public static class CollageTests
 
         Test("Collage", "The model: order, removing, the preview follows, unreadable pictures are told", () =>
         {
-            var model = new CollageModel([Fixtures.Url("quadrants.jpg"), Fixtures.Url("quadrants.png"), Fixtures.Url("fake.png")]);
+            var model = new CollageModel([Fixtures.Url("quadrants.jpg"), Fixtures.Url("quadrants.png"), Garbage("fake.png")]);
             model.Pending.Wait();
             Check(model.Thumbnails.Count == 2 && model.Unreadable.Select(Path.GetFileName).SequenceEqual(["fake.png"]), $"fake.png is not a picture: {string.Join(",", model.Unreadable)}");
             Require(model.Rendered is not null, "a preview");
@@ -111,12 +121,10 @@ public static class CollageTests
             Check(model.Paths.Count == 2, "removed");
             model.Style = model.Style with { Layout = CollageLayout.Column };
             model.Pending.Wait();
-            Check(model.Rendered!.Height > model.Rendered.Width, "a column is taller than wide");
-            ExpectError("Nothing to arrange", ["none of the images"], () =>
-            {
-                var none = new CollageModel([Fixtures.Url("fake.png")]);
-                if (none.Thumbnails.Count == 0) throw new Problem(L("None of the images could be read."), L("Check that they open in Photos."));
-            });
+            Check(model.Rendered!.Height == 816, $"one wide picture in a column: {model.Rendered.Height}");
+            var none = new CollageModel([Garbage("fake.png")]);
+            none.Pending.Wait();
+            Check(none.Thumbnails.Count == 0 && none.Rendered is null, "with nothing readable there is nothing to show");
         });
 
         Test("Collage", "The preview is the saved picture in small: same layout, same corners", () =>
@@ -182,7 +190,7 @@ public static class CollageTests
             var good = Path.Combine(folder, "good.png");
             var bad = Path.Combine(folder, "bad.png");
             File.Copy(Fixtures.Url("quadrants.png"), good, overwrite: true);
-            File.Copy(Fixtures.Url("fake.png"), bad, overwrite: true);
+            File.Copy(Garbage("fake.png"), bad, overwrite: true);
             new CollageModel([good, bad]).Save();
             var failed = Finished("Creating the collage");
             Check(failed.State == ActivityState.Failed && failed.Failures.Count == 1, $"{failed.State}");

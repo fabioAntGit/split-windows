@@ -214,7 +214,7 @@ public static class MediaEditTests
 
         Test("Edit Media", "A file that can't be edited is explained", () =>
         {
-            using var model = new MediaEditorModel(Fixtures.Url("fake.png"));
+            using var model = new MediaEditorModel(CollageTests.Garbage("fake.png"));
             model.Loaded.Wait();
             Check(model.Failure is not null && !model.Ready && model.Loading is null, "a failure is shown, not a spinner");
             Check(model.Failure!.FullText.Length > 25, $"explained: {model.Failure.FullText}");
