@@ -27,6 +27,24 @@ public static class Desktop
         return GetDpiForMonitor(monitor, 0, out var x, out _) == 0 ? x / 96.0 : 1;
     }
 
+    /// <summary>The work area (in pixels) and scale of the monitor at a point in pixels, or of the main monitor.</summary>
+    public static (Box Work, double Scale) MonitorAt(int x, int y, bool primary = false)
+    {
+        var monitor = MonitorFromPoint(new Point { X = x, Y = y }, primary ? 1u : 2u);
+        var info = new MonitorInfo { Size = Marshal.SizeOf<MonitorInfo>() };
+        GetMonitorInfo(monitor, ref info);
+        var scale = GetDpiForMonitor(monitor, 0, out var dpi, out _) == 0 ? dpi / 96.0 : 1;
+        var work = info.Work;
+        return (new Box(work.Left, work.Top, work.Right - work.Left, work.Bottom - work.Top), scale);
+    }
+
+    /// <summary>The monitor under the pointer.</summary>
+    public static (Box Work, double Scale) MonitorAtCursor()
+    {
+        GetCursorPos(out var cursor);
+        return MonitorAt(cursor.X, cursor.Y);
+    }
+
     /// <summary>"Animation effects" in Windows' accessibility settings, turned off.</summary>
     public static bool ReduceMotion => SystemParametersInfo(0x1042, 0, out int on, 0) && on == 0;
 
@@ -50,6 +68,7 @@ public static class Desktop
     }
 
     [StructLayout(LayoutKind.Sequential)] private struct Rect { public int Left, Top, Right, Bottom; }
+    [StructLayout(LayoutKind.Sequential)] private struct MonitorInfo { public int Size; public Rect Monitor; public Rect Work; public uint Flags; }
 
     [StructLayout(LayoutKind.Sequential)]
     private struct AppBarData { public int Size; public IntPtr Window; public uint Callback; public int Edge; public Rect Bounds; public IntPtr Param; }
@@ -57,6 +76,8 @@ public static class Desktop
     [DllImport("user32.dll")] private static extern bool SystemParametersInfo(uint action, int param, out Rect value, uint flags);
     [DllImport("user32.dll")] private static extern bool SystemParametersInfo(uint action, int param, out int value, uint flags);
     [DllImport("user32.dll")] private static extern IntPtr MonitorFromPoint(Point point, uint flags);
+    [DllImport("user32.dll")] private static extern bool GetMonitorInfo(IntPtr monitor, ref MonitorInfo info);
+    [DllImport("user32.dll")] private static extern bool GetCursorPos(out Point point);
     [DllImport("shcore.dll")] private static extern int GetDpiForMonitor(IntPtr monitor, int type, out uint x, out uint y);
     [DllImport("shell32.dll")] private static extern nuint SHAppBarMessage(uint message, ref AppBarData data);
     [DllImport("dwmapi.dll")] private static extern int DwmSetWindowAttribute(IntPtr window, int attribute, ref int value, int size);

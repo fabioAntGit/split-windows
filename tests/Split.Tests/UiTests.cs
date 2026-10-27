@@ -240,6 +240,19 @@ public static class UiTests
             Check(!Shelf.Shared.IsVisible, "not shown until asked");
         }));
 
+        Test("Shelf", "It opens against the right edge of the screen under the pointer, at that screen's scale", () => Ui.Run(() =>
+        {
+            var window = Shelf.Shared.MakeWindow();
+            window.Opacity = 0;
+            window.Show();
+            Shelf.Place(window);
+            var (work, scale) = Desktop.MonitorAtCursor();
+            var (left, top) = (window.Left * scale, window.Top * scale);
+            window.Hide();
+            Check(Near(left + 280 * scale, work.Right - 20 * scale, 1.5), $"20 from the right edge: {left + 280 * scale} against {work.Right - 20 * scale}");
+            Check(Near(top + 190 * scale, work.Y + work.Height / 2, 1.5), $"centred from top to bottom: {top + 190 * scale} against {work.Y + work.Height / 2}");
+        }));
+
         Test("Tray", "The menu: Convert, Tools, Actions, Shelf, Activity, the keys, Settings, How to Use, About, Quit", () =>
         {
             var entries = TrayMenu.Build(() => { });

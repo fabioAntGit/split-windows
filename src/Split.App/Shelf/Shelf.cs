@@ -67,14 +67,23 @@ public sealed class Shelf
         Model.Prune();
         var window = panel ??= MakeWindow();
         if (window.IsVisible) return;
-        var scale = Desktop.PrimaryScale();
-        var work = Desktop.PrimaryWorkArea();
-        window.Left = (work.Right - 20 * scale) / scale - window.Width;
-        window.Top = (work.Y + work.Height / 2) / scale - window.Height / 2;
         window.Opacity = 0;
         window.Show();
+        Place(window);
         window.BeginAnimation(UIElement.OpacityProperty, new DoubleAnimation(0, 1, TimeSpan.FromSeconds(Motion.ReduceMotion ? 0.12 : 0.2)) { FillBehavior = FillBehavior.Stop });
         window.Opacity = 1;
+    }
+
+    /// <summary>Against the right edge of the screen under the pointer, where the files were just dropped, in that screen's pixels.</summary>
+    public static void Place(Window window)
+    {
+        var (work, scale) = Desktop.MonitorAtCursor();
+        var (width, height) = (window.Width * scale, window.Height * scale);
+        var handle = new WindowInteropHelper(window).Handle;
+        // Twice: landing on a screen with another scale makes Windows resize the window for that screen first.
+        for (var pass = 0; pass < 2; pass++)
+            SetWindowPos(handle, IntPtr.Zero, (int)Math.Round(work.Right - 20 * scale - width), (int)Math.Round(work.Y + (work.Height - height) / 2),
+                         (int)Math.Round(width), (int)Math.Round(height), 0x14 /* SWP_NOZORDER | SWP_NOACTIVATE */);
     }
 
     public void Toggle()
@@ -131,6 +140,7 @@ public sealed class Shelf
 
     [DllImport("user32.dll", EntryPoint = "GetWindowLongW")] private static extern int GetWindowLong(IntPtr window, int index);
     [DllImport("user32.dll", EntryPoint = "SetWindowLongW")] private static extern int SetWindowLong(IntPtr window, int index, int value);
+    [DllImport("user32.dll")] private static extern bool SetWindowPos(IntPtr window, IntPtr after, int x, int y, int width, int height, uint flags);
 }
 
 /// <summary>The contents of the shelf window: the list of files, and the bar that drags them all.</summary>

@@ -338,7 +338,7 @@ public sealed class WheelController
         POINT point;
         if (atCursor) GetCursorPos(out point);
         else point = new POINT();
-        var (work, scale) = atCursor ? MonitorAt(point.X, point.Y) : MonitorAt(0, 0, primary: true);
+        var (work, scale) = atCursor ? Desktop.MonitorAt(point.X, point.Y) : Desktop.MonitorAt(0, 0, primary: true);
         if (!atCursor)
         {
             point.X = (int)(work.X + work.Width / 2);
@@ -371,26 +371,12 @@ public sealed class WheelController
         PlaceAgain(win);
     }
 
-    private static (Box Work, double Scale) MonitorAt(int x, int y, bool primary = false)
-    {
-        var monitor = MonitorFromPoint(new POINT { X = x, Y = y }, primary ? 1u : 2u);
-        var info = new MONITORINFO { Size = Marshal.SizeOf<MONITORINFO>() };
-        GetMonitorInfo(monitor, ref info);
-        var scale = GetDpiForMonitor(monitor, 0, out var dpi, out _) == 0 ? dpi / 96.0 : 1;
-        var work = info.Work;
-        return (new Box(work.Left, work.Top, work.Right - work.Left, work.Bottom - work.Top), scale);
-    }
-
     [StructLayout(LayoutKind.Sequential)] private struct POINT { public int X, Y; }
     [StructLayout(LayoutKind.Sequential)] private struct RECT { public int Left, Top, Right, Bottom; }
-    [StructLayout(LayoutKind.Sequential)] private struct MONITORINFO { public int Size; public RECT Monitor; public RECT Work; public uint Flags; }
 
     [DllImport("user32.dll")] private static extern bool GetCursorPos(out POINT point);
     [DllImport("user32.dll")] private static extern bool GetWindowRect(IntPtr window, out RECT rect);
     [DllImport("user32.dll")] private static extern short GetAsyncKeyState(int key);
     [DllImport("user32.dll")] private static extern bool SetForegroundWindow(IntPtr window);
-    [DllImport("user32.dll")] private static extern IntPtr MonitorFromPoint(POINT point, uint flags);
-    [DllImport("user32.dll")] private static extern bool GetMonitorInfo(IntPtr monitor, ref MONITORINFO info);
     [DllImport("user32.dll")] private static extern bool SetWindowPos(IntPtr window, IntPtr after, int x, int y, int width, int height, uint flags);
-    [DllImport("shcore.dll")] private static extern int GetDpiForMonitor(IntPtr monitor, int type, out uint x, out uint y);
 }
