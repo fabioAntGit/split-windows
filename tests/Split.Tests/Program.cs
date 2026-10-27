@@ -49,6 +49,8 @@ WheelTests.Register();
 ErrorTests.Register();
 CoreTests.Register();
 UiTests.Register();
+WheelLayoutTests.Register();
+WheelUiTests.Register();
 
 Test("Integrity", "Originals are never changed", () =>
 {
