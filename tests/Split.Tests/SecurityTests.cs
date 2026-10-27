@@ -34,7 +34,7 @@ public static class SecurityTests
         {
             if (Formats.Detect(path) is not { } format) return ["unknown format"];
             var failures = new List<string>();
-            foreach (var target in Conversions.Targets(format).Where(t => !(format.Group() == FormatGroup.Spreadsheet && t == Format.Pdf)))
+            foreach (var target in Conversions.Targets(format))
             {
                 try { Conversions.Convert(path, target); }
                 catch (Exception error) { failures.Add($"{target.Label()}: {Explain.Error(error).Message}"); }
@@ -149,7 +149,7 @@ public static class SecurityTests
                 """);
             Offline("XXE", () =>
             {
-                foreach (var target in Conversions.Targets(Format.Xlsx).Where(t => t != Format.Pdf))
+                foreach (var target in Conversions.Targets(Format.Xlsx))
                 {
                     try
                     {
@@ -345,6 +345,82 @@ public static class SecurityTests
             Hostile.Stylesheets(net, page);
             var clean = LocalOnly.Html(File.ReadAllText(page), Path.GetDirectoryName(page));
             Check(clean.Contains("<style>") && !clean.Contains("127.0.0.1") && !clean.Contains("<link"), $"the local stylesheet is inlined and its remote references are gone: {clean}");
+        });
+
+        Test("Security", "Hostile HTML → every target without touching the network", () =>
+        {
+            var page = Hostile.File("hostile.html", "html", Hostile.Html(net));
+            Hostile.Stylesheets(net, page);
+            Offline("HTML", () =>
+            {
+                var failures = ConvertAll(page);
+                Check(failures.Count == 0, $"conversions failed: {string.Join("; ", failures)}");
+            });
+            Check(Files.Text(Path.ChangeExtension(page, "txt")).Contains("Text that must survive"), "the page’s text should survive the clean-up");
+        });
+
+        Test("Security", "Hostile EPUB, ODT and Markdown files → every target without touching the network", () =>
+        {
+            var book = Hostile.Package("chapters.epub", "documents", new()
+            {
+                ["META-INF/container.xml"] = """<?xml version="1.0"?><container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container"><rootfiles><rootfile full-path="OEBPS/content.opf" media-type="application/oebps-package+xml"/></rootfiles></container>""",
+                ["OEBPS/content.opf"] = """<?xml version="1.0"?><package xmlns="http://www.idpf.org/2007/opf" version="3.0" unique-identifier="id"><metadata xmlns:dc="http://purl.org/dc/elements/1.1/"><dc:identifier id="id">x</dc:identifier><dc:title>Book</dc:title><dc:language>en</dc:language></metadata><manifest><item id="c1" href="ch1.xhtml" media-type="application/xhtml+xml"/></manifest><spine><itemref idref="c1"/></spine></package>""",
+                ["OEBPS/ch1.xhtml"] = $"""<?xml version="1.0" encoding="UTF-8"?><html xmlns="http://www.w3.org/1999/xhtml"><head><title>C</title><link rel="stylesheet" href="{net}/epub.css"/></head><body><h1>Chapter</h1><p>The book’s text.</p><img src="{net}/epub.png"/><p style="background:url({net}/epub-bg.png)">end</p></body></html>""",
+            }, new() { ["mimetype"] = "application/epub+zip" });
+            const string odf = "urn:oasis:names:tc:opendocument:xmlns";
+            var odt = Hostile.Package("remote.odt", "documents", new()
+            {
+                ["content.xml"] = $"""<?xml version="1.0" encoding="UTF-8"?><office:document-content xmlns:office="{odf}:office:1.0" xmlns:text="{odf}:text:1.0" xmlns:draw="{odf}:drawing:1.0" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:svg="{odf}:svg-compatible:1.0"><office:body><office:text><text:p>An OpenDocument text.</text:p><text:p><draw:frame svg:width="2cm" svg:height="2cm"><draw:image xlink:href="{net}/odt.png"/></draw:frame><draw:frame svg:width="2cm" svg:height="2cm"><draw:image xlink:href="../../outside.png"/></draw:frame></text:p></office:text></office:body></office:document-content>""",
+            }, new() { ["mimetype"] = "application/vnd.oasis.opendocument.text" });
+            var markdown = Hostile.File("remote.md", "documents", $"# Title\n\n![picture]({net}/md-image.png)\n\n<img src=\"{net}/md-raw.png\">\n\n[link]({net}/link)\n");
+            Offline("EPUB, ODT and Markdown", () =>
+            {
+                foreach (var file in new[] { book, odt, markdown })
+                {
+                    var failures = ConvertAll(file);
+                    Check(failures.Count == 0, $"{Path.GetFileName(file)}: {string.Join("; ", failures)}");
+                }
+            });
+        });
+
+        Test("Security", "DOCX and RTF with pictures linked to the Internet (canary tokens) without touching the network", () =>
+        {
+            const string w = "http://schemas.openxmlformats.org/wordprocessingml/2006/main";
+            const string r = "http://schemas.openxmlformats.org/officeDocument/2006/relationships";
+            var docx = Hostile.Package("canary.docx", "docx", new()
+            {
+                ["[Content_Types].xml"] = """<?xml version="1.0" encoding="UTF-8"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/></Types>""",
+                ["_rels/.rels"] = $"""<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="{r}/officeDocument" Target="word/document.xml"/></Relationships>""",
+                ["word/_rels/document.xml.rels"] = $"""<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId9" Type="{r}/image" Target="{net}/canary.png" TargetMode="External"/><Relationship Id="rId8" Type="{r}/hyperlink" Target="{net}/link" TargetMode="External"/></Relationships>""",
+                ["word/document.xml"] = $"""<?xml version="1.0" encoding="UTF-8"?><w:document xmlns:w="{w}" xmlns:r="{r}" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture"><w:body><w:p><w:r><w:t>A document with a remote picture.</w:t></w:r></w:p><w:p><w:r><w:drawing><wp:inline><wp:extent cx="952500" cy="952500"/><wp:docPr id="1" name="Canary"/><a:graphic><a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture"><pic:pic><pic:nvPicPr><pic:cNvPr id="1" name="c.png"/><pic:cNvPicPr/></pic:nvPicPr><pic:blipFill><a:blip r:link="rId9"/><a:stretch><a:fillRect/></a:stretch></pic:blipFill><pic:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="952500" cy="952500"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></pic:spPr></pic:pic></a:graphicData></a:graphic></wp:inline></w:drawing></w:r></w:p><w:p><w:r><w:fldChar w:fldCharType="begin"/></w:r><w:r><w:instrText xml:space="preserve"> INCLUDEPICTURE "{net}/field.png" \d </w:instrText></w:r><w:r><w:fldChar w:fldCharType="end"/></w:r></w:p><w:p><w:hyperlink r:id="rId8"><w:r><w:t>link</w:t></w:r></w:hyperlink></w:p></w:body></w:document>""",
+            });
+            var rtf = Hostile.File("canary.rtf", "rtf", "{\\rtf1\\ansi{\\fonttbl\\f0 Arial;}\\f0 RTF text.\\par{\\field{\\*\\fldinst INCLUDEPICTURE \"" + net + "/rtf.png\" \\\\d}{\\fldrslt }}\\par"
+                + "{\\field{\\*\\fldinst HYPERLINK \"" + net + "/rtf-link\"}{\\fldrslt link}}\\par}");
+            Offline("DOCX/RTF", () =>
+            {
+                var docxFailures = ConvertAll(docx);
+                Check(docxFailures.Count == 0, $"DOCX: {string.Join("; ", docxFailures)}");
+                var rtfFailures = ConvertAll(rtf);
+                Check(rtfFailures.Count == 0, $"RTF: {string.Join("; ", rtfFailures)}");
+            });
+            Check(Files.Text(Path.ChangeExtension(docx, "txt")).Contains("A document with a remote picture."), "the text of the DOCX survives");
+        });
+
+        Test("Security", "Web pages disguised as .doc or .rtf (as Word saves them) without touching the network", () =>
+        {
+            foreach (var name in new[] { "page.doc", "page.rtf" })
+            {
+                var file = Hostile.File(name, "disguised", Hostile.Html(net));
+                Hostile.Stylesheets(net, file);
+                Offline(name, () =>
+                {
+                    foreach (var target in new[] { Format.Pdf, Format.Txt, Format.Docx })
+                    {
+                        try { Conversions.Convert(file, target); }
+                        catch (Exception error) { Check(Explain.Error(error).FullText.Length > 25, $"{name} → {target.Label()}: an error without an explanation"); }
+                    }
+                });
+            }
         });
     }
 }

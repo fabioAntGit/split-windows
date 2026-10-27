@@ -100,3 +100,36 @@ public static partial class Fixtures
         }
     }
 }
+
+public static partial class Hostile
+{
+    /// <summary>Remote references in every form a document importer might follow.</summary>
+    public static string Html(string net)
+    {
+        var port = net.Split(':').Last();
+        return $$"""
+            <!DOCTYPE html><html><base href="{{net}}/base/"><head><meta charset="utf-8">
+            <link rel="stylesheet" href="{{net}}/style.css"><link rel="icon" href="{{net}}/icon.png"><link rel="stylesheet" href="style.css">
+            <style>@import url("{{net}}/import.css"); body { background: url({{net}}/bg.png); }
+            @font-face { font-family: X; src: url('{{net}}/font.woff'); } p { font-family: X; }</style>
+            <script src="{{net}}/script.js"></script><script>document.write('<img src="{{net}}/js.png">')</script>
+            <meta http-equiv="refresh" content="0; url={{net}}/refresh">
+            </head><body background="{{net}}/body.png">
+            <h1>Hostile page</h1><p>Text that must survive.</p>
+            <img src="{{net}}/img.png"><img src="relative.png"><img SRC = '{{net}}/upper.png'><img src={{net}}/unquoted.png>
+            <img src="&#104;ttp://127.0.0.1:{{port}}/entity.png"><img src="&#x68;ttp://127.0.0.1:{{port}}/hex.png">
+            <img src="h&#116;tp://127.0.0.1:{{port}}/mid-entity.png"><img src=" {{net}}/spaced.png">
+            <img srcset="local.png 1x, {{net}}/srcset.png 2x"><img src="//127.0.0.1:{{port}}/protocol-relative.png">
+            <img src="file://127.0.0.1/share/unc.png"><img src="file://localhost/C:/Windows/Web/nothing.png"><img src="\127.0.0.1\share\unc.png">
+            <picture><source srcset="{{net}}/picture.png"><img src="x.png"></picture>
+            <iframe src="{{net}}/frame"></iframe><object data="{{net}}/object"></object><embed src="{{net}}/embed">
+            <video poster="{{net}}/poster.png" src="{{net}}/video.mp4"></video><audio src="{{net}}/audio.mp3"></audio>
+            <input type="image" src="{{net}}/input.png">
+            <div style="background-image: url('{{net}}/style-attr.png')">div</div>
+            <div style="background-image: image-set('{{net}}/set.png' 1x)">set</div>
+            <svg><image href="{{net}}/svg-in-html.png" width="10" height="10"/></svg>
+            <table background="{{net}}/table.png"><tr><td>cell</td></tr></table>
+            </body></html>
+            """;
+    }
+}

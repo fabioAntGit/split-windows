@@ -20,6 +20,7 @@ public static class ConversionTests
         "animated.gif", "drawing.svg", "quadrants.avif",
         "tone.wav", "tone.mp3", "tone.flac", "tone.m4a", "tone.opus", "tone.ogg", "tone.aiff", "tone.wma",
         "clip.mp4", "clip.mov", "clip.m4v", "clip.mkv", "clip.webm", "clip.avi", "clip.wmv",
+        "notes.txt", "readme.md", "page.html", "letter.rtf", "letter.docx", "letter.odt", "letter.doc", "book.epub", "report.pdf",
         "prices.csv", "people.tsv", "sales.xlsx", "subs.srt", "subs.vtt", "folder.zip", "folder.tar", "folder.tar.gz",
         "data.json", "data.xml",
     ];
@@ -41,8 +42,7 @@ public static class ConversionTests
                 if (Fixtures.Stubs.Contains(name)) Skip($"{name} can’t be made on Windows: put a real one in tests/Fixtures");
                 var source = Fixtures.Isolated(name, $"matrix-{name}");
                 var format = Formats.Detect(source)!.Value;
-                // A table to PDF waits for the document writer.
-                var targets = Conversions.Targets(format).Where(t => !(format.Group() == FormatGroup.Spreadsheet && t == Format.Pdf)).ToList();
+                var targets = Conversions.Targets(format);
                 Require(targets.Count > 0, $"{name} has no targets on the wheel");
                 var before = Files.Sha(source);
                 foreach (var target in targets)
@@ -410,8 +410,31 @@ public static class ConversionTests
                 if (target == Format.Xlsx) Check(FileCheck.Sniff(output) == "ZIP", $"{label}: invalid XLSX");
                 if (target is Format.Csv or Format.Tsv) Check(Files.Text(output).Length > 0, $"{label}: empty CSV");
                 break;
-            case FormatGroup.Document when target == Format.Html:
-                Check(Files.Text(output).Contains("<table>"), $"{label}: text missing or in the wrong encoding");
+            case FormatGroup.Document:
+                switch (target)
+                {
+                    case Format.Pdf:
+                        int pages;
+                        try { pages = PdfReader.Open(output, PdfDocumentOpenMode.Import).PageCount; } catch (Exception) { pages = 0; }
+                        Check(pages >= 1, $"{label}: invalid PDF");
+                        if (format is Format.Txt or Format.Md or Format.Html or Format.Rtf or Format.Docx or Format.Odt or Format.Doc or Format.Epub)
+                            Check(DocumentTests.PdfText(output).Contains("Split"), $"{label}: the PDF doesn’t have the text");
+                        break;
+                    case Format.Png or Format.Jpg:
+                        Check(Pixels.Info(output) is not null, $"{label}: the page isn’t an image");
+                        break;
+                    case Format.Txt or Format.Html:
+                        Check(Files.Text(output).Contains("Split") || format is Format.Csv or Format.Tsv or Format.Xlsx or Format.Xls or Format.Ods,
+                              $"{label}: text missing or in the wrong encoding");
+                        break;
+                    case Format.Docx or Format.Odt or Format.Epub:
+                        Check(FileCheck.Sniff(output) == "ZIP", $"{label}: not a ZIP package");
+                        if (target != Format.Epub) Check(DocumentPipeline.Load(output, target).PlainText.Contains("Split"), $"{label}: the document lost its text");
+                        break;
+                    case Format.Rtf:
+                        Check(FileCheck.Sniff(output) == "RTF", $"{label}: not RTF");
+                        break;
+                }
                 break;
             case FormatGroup.Subtitle:
                 Check(Files.Text(output).Contains("Split"), $"{label}: subtitles without text");
