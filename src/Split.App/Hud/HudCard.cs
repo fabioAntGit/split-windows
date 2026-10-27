@@ -121,7 +121,7 @@ public sealed class HudCard : Border
     private void Rebuild()
     {
         var contrast = Motion.IncreaseContrast;
-        card.Background = Palette.Brush(Palette.WheelSurface);
+        card.Background = Palette.Brush(Palette.Floating);
         card.BorderBrush = Palette.Brush(Palette.With(Palette.Primary, contrast ? 0.4 : 0.1));
         card.BorderThickness = new Thickness(contrast ? 1 : 0.5);
         card.Effect = new System.Windows.Media.Effects.DropShadowEffect { BlurRadius = 7, ShadowDepth = 1.5, Direction = 270, Opacity = 0.3, Color = Colors.Black };

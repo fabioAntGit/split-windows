@@ -30,6 +30,12 @@ public static class Palette
     /// <summary>The backdrop of the wheel and of every window: a soft black, or white.</summary>
     public static Color WheelSurface => IsWhite ? Gray(0.96) : Gray(0.165);
 
+    /// <summary>
+    /// The wheel, the notices and the menus float over the desktop and let it show faintly through. There is no
+    /// blur, which is what costs time on every frame. Increase contrast keeps them solid.
+    /// </summary>
+    public static Color Floating => Motion.IncreaseContrast ? WheelSurface : With(WheelSurface, 0.86);
+
     /// <summary>The wheel's lines, names and icons.</summary>
     public static Color WheelInk => IsWhite ? Gray(0.1) : Colors.White;
 

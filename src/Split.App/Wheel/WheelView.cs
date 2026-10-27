@@ -521,7 +521,7 @@ public sealed class WheelView : FrameworkElement
         dc.PushTransform(AroundPoint(exitFade is { } leaving && !reduceMotion ? 1 - 0.06 * (1 - leaving.Value) : 1, center));
 
         if (forWindow) DrawShadow(dc, center, disc);
-        dc.DrawEllipse(Palette.Brush(Palette.WheelSurface), null, center, disc, disc);
+        dc.DrawEllipse(Palette.Brush(forWindow ? Palette.Floating : Palette.WheelSurface), null, center, disc, disc);
 
         dc.PushOpacity(levelFade?.Value ?? 1);
         dc.PushTransform(AroundPoint(levelScale.Value, center));
@@ -576,7 +576,11 @@ public sealed class WheelView : FrameworkElement
         var brush = new RadialGradientBrush { GradientOrigin = new Point(0.5, 0.5), Center = new Point(0.5, 0.5), RadiusX = 0.5, RadiusY = 0.5 };
         foreach (var (at, alpha) in new[] { (0.0, 0.34), (edge, 0.34), (edge + 0.25 * (1 - edge), 0.17), (edge + 0.5 * (1 - edge), 0.07), (edge + 0.75 * (1 - edge), 0.02), (1.0, 0.0) })
             brush.GradientStops.Add(new GradientStop(Color.FromArgb((byte)Math.Round(alpha * 255), 0, 0, 0), at));
+        // Only around the disc: under it the shadow would show through the clear surface and darken it.
+        var around = new RectangleGeometry(new Rect(center.X - reach, center.Y + 4 - reach, 2 * reach, 2 * reach));
+        dc.PushClip(new CombinedGeometry(GeometryCombineMode.Exclude, around, new EllipseGeometry(center, disc, disc)));
         dc.DrawEllipse(brush, null, new Point(center.X, center.Y + 4), reach, reach);
+        dc.Pop();
     }
 
     /// <summary>
