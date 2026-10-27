@@ -7,6 +7,7 @@ public partial class App : Application
 {
     private SingleInstance? instance;
     private TrayIcon? tray;
+    private readonly DragMonitor monitor = new();
 
     protected override void OnStartup(StartupEventArgs e)
     {
@@ -26,6 +27,13 @@ public partial class App : Application
         NotificationHud.Shared.Attach(Dispatcher);
         tray = new TrayIcon(Quit);
 
+        WheelHost.Current = new AppWheelHost();
+        WheelController.Install();
+        monitor.Triggered = WheelController.Shared.BeginDrag;
+        monitor.DragEnded = WheelController.Shared.DragEnded;
+        monitor.Cancelled = WheelController.Shared.Escape;
+        monitor.Start();
+
         if (!Settings.DidShowWelcome)
         {
             Settings.DidShowWelcome = true;
@@ -44,6 +52,8 @@ public partial class App : Application
     private void Quit()
     {
         Shelf.Shared.Quitting = true;
+        monitor.Stop();
+        WheelController.Shared.Hide(animated: false);
         tray?.Dispose();
         instance?.Dispose();
         Shutdown();
