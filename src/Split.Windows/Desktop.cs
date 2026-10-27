@@ -67,6 +67,13 @@ public static class Desktop
         DwmSetWindowAttribute(window, 35, ref colorref, 4);
     }
 
+    /// <summary>The file of the desktop picture, or null when there is none (a plain colour, a slideshow not yet started).</summary>
+    public static string? WallpaperPath()
+    {
+        var path = new System.Text.StringBuilder(520);
+        return SystemParametersInfo(0x73, path.Capacity, path, 0) && path.Length > 0 && File.Exists(path.ToString()) ? path.ToString() : null;
+    }
+
     [StructLayout(LayoutKind.Sequential)] private struct Rect { public int Left, Top, Right, Bottom; }
     [StructLayout(LayoutKind.Sequential)] private struct MonitorInfo { public int Size; public Rect Monitor; public Rect Work; public uint Flags; }
 
@@ -75,6 +82,7 @@ public static class Desktop
 
     [DllImport("user32.dll")] private static extern bool SystemParametersInfo(uint action, int param, out Rect value, uint flags);
     [DllImport("user32.dll")] private static extern bool SystemParametersInfo(uint action, int param, out int value, uint flags);
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)] private static extern bool SystemParametersInfo(uint action, int param, System.Text.StringBuilder value, uint flags);
     [DllImport("user32.dll")] private static extern IntPtr MonitorFromPoint(Point point, uint flags);
     [DllImport("user32.dll")] private static extern bool GetMonitorInfo(IntPtr monitor, ref MonitorInfo info);
     [DllImport("user32.dll")] private static extern bool GetCursorPos(out Point point);

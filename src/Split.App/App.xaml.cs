@@ -34,6 +34,11 @@ public partial class App : Application
         monitor.Cancelled = WheelController.Shared.Escape;
         monitor.Start();
 
+        AppWindows.ShowSettings = () => SettingsWindow.Open();
+        AppWindows.ShowActivity = () => SettingsWindow.Open(SettingsTab.Activity);
+        AppWindows.ShowHelp = () => HelpWindow.Open();
+        AppWindows.ShowAbout = () => AboutWindow.Open();
+
         if (!Settings.DidShowWelcome)
         {
             Settings.DidShowWelcome = true;
