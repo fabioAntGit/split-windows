@@ -4,5 +4,13 @@
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
   </PropertyGroup>
   <ItemGroup>
+    <PackageVersion Include="Magick.NET-Q16-AnyCPU" Version="15.0.0" />
+    <PackageVersion Include="SharpCompress" Version="0.50.5" />
+    <PackageVersion Include="Svg.Skia" Version="5.2.1" />
+    <PackageVersion Include="AngleSharp" Version="1.8.4" />
+    <!-- 6.2.4 is the last MIT release; later ones are AGPL and refuse to work without a licence. Never raise it. -->
+    <PackageVersion Include="PDFsharp" Version="6.2.4" />
+    <!-- PDFsharp 6.2.4 pulls 8.0.1, which has a security advisory. -->
+    <PackageVersion Include="System.Security.Cryptography.Pkcs" Version="10.0.14" />
   </ItemGroup>
 </Project>
