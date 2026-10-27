@@ -13,7 +13,7 @@ namespace Split.Tests;
 /// <c>tests/Fixtures</c> when they are there; otherwise a small file with the right signature
 /// stands in, is listed in <see cref="Stubs"/>, and the tests that need the real thing skip.
 /// </summary>
-public static class Fixtures
+public static partial class Fixtures
 {
     public static string Root { get; private set; } = "";
     public const string Phrase = "Hello Split — café, crème brûlée, São Paulo";
@@ -49,6 +49,7 @@ public static class Fixtures
         Documents();
         Archives();
         Data();
+        Converters();
         Misc();
     }
 

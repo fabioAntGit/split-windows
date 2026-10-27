@@ -103,4 +103,13 @@ public static class Output
         Directory.CreateDirectory(directory);
         return directory;
     }
+
+    /// <summary>Text results are written like every other result: hidden temp first, renamed when complete.</summary>
+    public static void WriteText(string final, string text)
+    {
+        var temp = TempSibling(final);
+        try { File.WriteAllText(temp, text, new System.Text.UTF8Encoding(false)); }
+        catch { Discard(temp); throw; }
+        Commit(temp, final);
+    }
 }

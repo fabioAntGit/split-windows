@@ -55,3 +55,13 @@
 "Move the new files to the Recycle Bin" = "Mover os ficheiros novos para a Reciclagem";
 "Moved to the Recycle Bin" = "Movido para a Reciclagem";
 "Show in File Explorer" = "Mostrar no Explorador de Ficheiros";
+"JPG has no transparency, so transparent areas became white. PNG, WebP or JPEG XL keep it." = "O JPG não tem transparência, por isso as áreas transparentes ficaram brancas. PNG, WebP ou JPEG XL mantêm-na.";
+"Open it in Calibre to check whether it is damaged." = "Abre-o no Calibre para ver se está danificado.";
+"Shortcuts in the archive were left out: Windows can’t recreate them." = "Os atalhos do arquivo ficaram de fora: o Windows não os consegue recriar.";
+"Split could not build the animated %@ (%@ frames)." = "O Split não conseguiu criar o %@ animado (%@ frames).";
+"Split could not put the %@ images together into one %@." = "O Split não conseguiu juntar as %@ imagens num só %@.";
+"Split couldn’t draw the SVG “%@”." = "O Split não conseguiu desenhar o SVG “%@”.";
+"Split couldn’t read “%@” as an image." = "O Split não conseguiu ler “%@” como imagem.";
+"The %@ encoder refused this image (%@ × %@ px)." = "O codificador %@ recusou esta imagem (%@×%@ px).";
+"The file may have syntax errors or use SVG features that aren’t supported. Open it in a web browser to check." = "O ficheiro pode ter erros de sintaxe ou usar funcionalidades de SVG que não são suportadas. Abre-o num navegador para confirmar.";
+"The file seems damaged or incomplete (for example, a download that didn’t finish). Open it in Photos to check." = "O ficheiro parece danificado ou incompleto (por exemplo, uma transferência que não terminou). Abre-o nas Fotografias para confirmar.";

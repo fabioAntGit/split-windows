@@ -92,7 +92,7 @@ public static class Files
 }
 
 /// <summary>Where the project's own files are, for the checks that read the code itself.</summary>
-public static class Hostile
+public static partial class Hostile
 {
     public static string Project { get; set; } = "";
 
