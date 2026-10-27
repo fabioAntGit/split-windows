@@ -167,6 +167,13 @@ public static class Settings
         set => Write("useOfficeApps", value);
     }
 
+    /// <summary>The welcome window opens once, the first time Split runs.</summary>
+    public static bool DidShowWelcome
+    {
+        get => Read<bool?>("didShowWelcome") ?? false;
+        set => Write("didShowWelcome", value);
+    }
+
     /// <summary>The order, hidden slices and groups of one wheel; <paramref name="key"/> names the wheel (see <see cref="WheelScope"/>).</summary>
     public static WheelArrangement WheelArrangement(string key)
     {
