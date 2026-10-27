@@ -280,6 +280,28 @@ public static class EditorUiTests
             window.CloseNow();
         }));
 
+        Test("Background", "The kinds of background are never cut short, in every language", () => Ui.Run(() =>
+        {
+            using var picture = Px.Quadrants();
+            var language = Localizer.Shared.Language;
+            try
+            {
+                foreach (var each in Languages.All)
+                {
+                    Localizer.Shared.Language = each;
+                    var window = Shown(new BackgroundEditor([Fixtures.Url("quadrants.png")], "Background", picture));
+                    foreach (var label in FindAll<Segmented>(window.Layout).SelectMany(FindAll<TextBlock>))
+                    {
+                        var room = label.ActualWidth;
+                        label.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+                        Check(label.DesiredSize.Width <= room + 0.5, $"{each}: “{label.Text}” is cut to {room:0} of {label.DesiredSize.Width:0}");
+                    }
+                    window.CloseNow();
+                }
+            }
+            finally { Localizer.Shared.Language = language; }
+        }));
+
         Test("Interface", "Snapshots: the four editors in black and in white", () => Ui.Run(() =>
         {
             var folder = Path.Combine(Fixtures.Root, "_captures-windows");

@@ -172,7 +172,7 @@ public sealed class Segmented : Border
         Padding = new Thickness(2);
         if (width is { } w) Width = w;
         System.Windows.Automation.AutomationProperties.SetName(this, name);
-        var grid = new UniformGrid { Rows = 1 };
+        var grid = new Grid();
         for (var i = 0; i < labels.Count; i++)
         {
             var index = i;
@@ -180,11 +180,15 @@ public sealed class Segmented : Border
             label.HorizontalAlignment = HorizontalAlignment.Center;
             label.VerticalAlignment = VerticalAlignment.Center;
             label.TextTrimming = TextTrimming.CharacterEllipsis;
+            label.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+            // Equal shares while they fit; a longer label (a translation) takes the room it needs before any is cut.
+            grid.ColumnDefinitions.Add(new ColumnDefinition { MinWidth = Math.Ceiling(label.DesiredSize.Width) + 8 });
             var segment = new Border
             {
-                Child = label, Height = 24, CornerRadius = new CornerRadius(5), Padding = new Thickness(8, 0, 8, 0), Cursor = Cursors.Arrow, Focusable = true,
+                Child = label, Height = 24, CornerRadius = new CornerRadius(5), Padding = new Thickness(4, 0, 4, 0), Cursor = Cursors.Arrow, Focusable = true,
                 Background = i == selected ? Palette.Brush(Palette.With(Palette.Primary, 0.2)) : Brushes.Transparent,
             };
+            Grid.SetColumn(segment, i);
             System.Windows.Automation.AutomationProperties.SetName(segment, labels[i]);
             segment.MouseLeftButtonUp += (_, _) => { if (index != selected) choose(index); };
             segment.KeyDown += (_, e) => { if (e.Key is Key.Space or Key.Enter) choose(index); };
