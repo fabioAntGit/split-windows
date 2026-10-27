@@ -29,7 +29,7 @@ public static class Engines
     public static string Require(string name, string? package = null)
     {
         if (Path(name) is { } path) return path;
-        var id = package ?? name;
+        var id = package ?? WingetPackages.FirstOrDefault(p => p.Program == name).Package ?? name;
         var install = Path("winget") is null
             ? L("Install App Installer from the Microsoft Store, then run: winget install -e --id %@", id)
             : L("Install it in a terminal with: winget install -e --id %@. There’s no need to reopen Split.", id);
