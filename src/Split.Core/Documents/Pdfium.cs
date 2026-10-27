@@ -58,6 +58,9 @@ public sealed class PdfiumDocument : IDisposable
         }
     }
 
+    /// <summary>The page's size in points, rotation applied.</summary>
+    public (double Width, double Height) PageSize(int index) => WithPage(index, page => ((double)Native.FPDF_GetPageWidthF(page), (double)Native.FPDF_GetPageHeightF(page)));
+
     private T WithPage<T>(int index, Func<IntPtr, T> body)
     {
         lock (Gate)
