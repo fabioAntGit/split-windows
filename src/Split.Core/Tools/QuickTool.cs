@@ -141,6 +141,38 @@ public static class QuickTools
     public static ToolResult Run(this QuickTool tool, IReadOnlyList<string> paths, long? targetBytes = null)
     {
         foreach (var path in paths) FileCheck.Preflight(path, allowFolders: tool == QuickTool.Zip);
-        throw Pending.Error();
+        switch (tool)
+        {
+            case QuickTool.CombinePdf: return new ToolResult([Tools.CombinePdf(paths)]);
+            case QuickTool.Zip: return new ToolResult([Tools.Zip(paths)]);
+            case QuickTool.ConcatVideos: return new ToolResult([Tools.ConcatVideos(paths)]);
+        }
+        var outputs = new List<string>();
+        var messages = new List<string>();
+        foreach (var path in paths)
+        {
+            var single = RunSingle(tool, path, targetBytes);
+            outputs.AddRange(single.Outputs);
+            if (single.Message is { } message) messages.Add(message);
+        }
+        return new ToolResult(outputs, messages.Count == 0 ? null : string.Join("\n", messages));
     }
+
+    private static ToolResult RunSingle(QuickTool tool, string path, long? targetBytes) => tool switch
+    {
+        QuickTool.Compress => new([Tools.Compress(path)]),
+        QuickTool.CompressToSize => new([TargetSize.Compress(path, targetBytes ?? throw new Problem(L("No size was chosen.")))]),
+        QuickTool.StripMetadata => new([Tools.StripMetadata(path)]),
+        QuickTool.RemoveBackground => new([Tools.RemoveBackground(path)]),
+        QuickTool.SplitPages => new([Tools.SplitPages(path)]),
+        QuickTool.Extract => new(ArchiveTools.Extract(path)),
+        QuickTool.Normalize => new([Tools.Normalize(path)]),
+        QuickTool.Mono => new([Tools.Mono(path)]),
+        QuickTool.TrimSilence => new([Tools.TrimSilence(path)]),
+        QuickTool.Mute => new([Tools.Mute(path)]),
+        QuickTool.Snapshots => new([Tools.Snapshots(path)]),
+        QuickTool.WaveformVideo => new([Tools.WaveformVideo(path)]),
+        QuickTool.ReadQr => new([], string.Join("\n", Tools.ReadQr(path))),
+        _ => Run(tool, [path]),
+    };
 }

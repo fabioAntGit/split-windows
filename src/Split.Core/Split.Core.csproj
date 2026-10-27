@@ -12,8 +12,12 @@
     <PackageReference Include="System.Security.Cryptography.Pkcs" />
     <PackageReference Include="PDFsharp-MigraDoc" />
     <PackageReference Include="bblanchon.PDFium.Win32" />
+    <PackageReference Include="Microsoft.ML.OnnxRuntime" />
+    <PackageReference Include="ZXing.Net" />
   </ItemGroup>
   <ItemGroup>
+    <!-- The background-removal model is not in git (tools/get-model.ps1 fetches it); without it the tool stays off. -->
+    <None Include="..\..\assets\models\isnet-general-use.onnx" Link="models\isnet-general-use.onnx" CopyToOutputDirectory="PreserveNewest" Condition="Exists('..\..\assets\models\isnet-general-use.onnx')" />
     <!-- The translation tables travel with every program built on the Core. -->
     <None Include="..\..\Resources\Localization\**\*.strings" Link="Localization\%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>

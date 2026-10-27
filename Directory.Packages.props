@@ -17,5 +17,7 @@
     <PackageVersion Include="bblanchon.PDFium.Win32" Version="158.0.8125" />
     <!-- Same version as the SkiaSharp that Svg.Skia brings, so there is a single SkiaSharp. -->
     <PackageVersion Include="SkiaSharp.Views.WPF" Version="4.148.0" />
+    <PackageVersion Include="Microsoft.ML.OnnxRuntime" Version="1.31.0" />
+    <PackageVersion Include="ZXing.Net" Version="0.16.10" />
   </ItemGroup>
 </Project>

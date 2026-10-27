@@ -245,7 +245,7 @@ public sealed class ImageConverter : IConversionFamily
     /// One picture in any format. <paramref name="faithful"/> says the pixels come from a file whose metadata
     /// should travel with them; <paramref name="path"/> is that file, for a JPEG that goes into a PDF untouched.
     /// </summary>
-    internal static void WriteSingle(IMagickImage<ushort> source, string? path, string output, Format target, Format sourceFormat, bool faithful)
+    internal static void WriteSingle(IMagickImage<ushort> source, string? path, string output, Format target, Format sourceFormat, bool faithful, Quality? quality = null)
     {
         if (target == Format.Ico)
         {
@@ -263,15 +263,33 @@ public sealed class ImageConverter : IConversionFamily
             return;
         }
         using var image = Prepare(source, target, faithful);
-        Save(image, output, target, JxlLossless(sourceFormat));
+        Save(image, output, target, JxlLossless(sourceFormat), quality);
+    }
+
+    /// <summary>One picture encoded in memory at an exact quality (0-100), for the searches that aim at a file size.</summary>
+    internal static byte[] EncodeAt(IMagickImage<ushort> source, Format target, int quality)
+    {
+        using var image = Prepare(source, target, faithful: true);
+        Define(image, target, jxlLossless: false);
+        image.Quality = (uint)quality;
+        try
+        {
+            using var stream = new MemoryStream();
+            image.Write(stream, Coder(target));
+            return stream.ToArray();
+        }
+        catch (MagickException e)
+        {
+            throw Refused(target, image, e);
+        }
     }
 
     /// <summary>JPEG XL keeps lossless sources lossless; the rest uses the chosen quality.</summary>
     private static bool JxlLossless(Format source) => source is Format.Png or Format.Tiff or Format.Bmp or Format.Gif or Format.Ico or Format.Svg;
 
-    private static void Define(IMagickImage<ushort> image, Format format, bool jxlLossless)
+    private static void Define(IMagickImage<ushort> image, Format format, bool jxlLossless, Quality? chosen = null)
     {
-        var quality = Settings.Quality;
+        var quality = chosen ?? Settings.Quality;
         switch (format)
         {
             case Format.Jpg or Format.Avif:
@@ -294,12 +312,12 @@ public sealed class ImageConverter : IConversionFamily
     }
 
     /// <summary>Encodes into a hidden temp next to the result and renames it when the encoder is done.</summary>
-    private static void Save(IMagickImage<ushort> image, string output, Format format, bool jxlLossless = false)
+    private static void Save(IMagickImage<ushort> image, string output, Format format, bool jxlLossless = false, Quality? quality = null)
     {
         var temp = Output.TempSibling(output);
         try
         {
-            Define(image, format, jxlLossless);
+            Define(image, format, jxlLossless, quality);
             var profile = image.GetColorProfile()?.ToByteArray();
             using (var file = File.Create(temp)) image.Write(file, Coder(format));
             // The encoder swaps a standard sRGB profile for a bare marker; the profile itself is kept in the file.

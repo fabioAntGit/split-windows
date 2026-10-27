@@ -113,3 +113,14 @@
 "Turn on “Use Word, Excel and PowerPoint” in Settings, or install LibreOffice: winget install -e --id TheDocumentFoundation.LibreOffice" = "Activez « Utiliser Word, Excel et PowerPoint » dans les Réglages, ou installez LibreOffice : winget install -e --id TheDocumentFoundation.LibreOffice";
 "Word couldn’t export the document (%@), so Split’s own converter was used and the layout may differ." = "Word n’a pas pu exporter le document (%@) : le convertisseur de Split a été utilisé et la mise en page peut différer.";
 "Drag to draw. With “Select” you can move or delete marks (Delete key). Ctrl+Z undoes. The copy gets “(%@)”." = "Faites glisser pour dessiner. Avec « Sélectionner », vous pouvez déplacer ou supprimer des marques (touche Suppr). Ctrl+Z annule. La copie reçoit « (%@) ».";
+"To make it smaller, convert to a more efficient format (for example WebP or AVIF for images, MP4 for videos)." = "Pour l’alléger, convertissez dans un format plus efficace (par exemple WebP ou AVIF pour les images, MP4 pour les vidéos).";
+"HEIC can’t be written on Windows, so the compressed copy is a JPG." = "Windows ne peut pas écrire de HEIC : la copie compressée est donc un JPG.";
+"Split couldn’t save the combined PDF." = "Split n’a pas pu enregistrer le PDF combiné.";
+"Videos are joined in name order and at the size of the first one. Check that the first one opens in a video player." = "Les vidéos sont assemblées par ordre de nom et à la taille de la première. Vérifiez que la première s’ouvre dans un lecteur vidéo.";
+"Split couldn’t create the compressed version of “%@”." = "Split n’a pas pu créer la version compressée de « %@ ».";
+"Some PDFs (forms, PDF/A, signed) can’t be rewritten. Try “Remove Metadata” or convert to images." = "Certains PDF (formulaires, PDF/A, signés) ne peuvent pas être réécrits. Essayez « Retirer les métadonnées » ou convertissez en images.";
+"Split couldn’t save the clean copy of “%@”." = "Split n’a pas pu enregistrer la copie nettoyée de « %@ ».";
+"Removing the background needs the model that ships with Split." = "La suppression de l’arrière-plan nécessite le modèle fourni avec Split.";
+"Reinstall Split to get it back." = "Réinstallez Split pour le récupérer.";
+"The terminal couldn’t be opened." = "Le terminal n’a pas pu être ouvert.";
+"Install Windows Terminal from the Microsoft Store, or check that PowerShell is available." = "Installez Windows Terminal depuis le Microsoft Store, ou vérifiez que PowerShell est disponible.";
