@@ -13,5 +13,7 @@
     <PackageVersion Include="PDFsharp" Version="6.2.4" />
     <!-- PDFsharp 6.2.4 pulls 8.0.1, which has a security advisory. -->
     <PackageVersion Include="System.Security.Cryptography.Pkcs" Version="10.0.14" />
+    <PackageVersion Include="PDFsharp-MigraDoc" Version="6.2.4" />
+    <PackageVersion Include="bblanchon.PDFium.Win32" Version="158.0.8125" />
   </ItemGroup>
 </Project>
