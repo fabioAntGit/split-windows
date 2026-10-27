@@ -113,3 +113,6 @@
 "Turn on “Use Word, Excel and PowerPoint” in Settings, or install LibreOffice: winget install -e --id TheDocumentFoundation.LibreOffice" = "Ativa “Usar Word, Excel e PowerPoint” nas Definições, ou instala o LibreOffice: winget install -e --id TheDocumentFoundation.LibreOffice";
 "Word couldn’t export the document (%@), so Split’s own converter was used and the layout may differ." = "O Word não conseguiu exportar o documento (%@), por isso foi usado o conversor do Split e o aspeto pode ser diferente.";
 "Drag to draw. With “Select” you can move or delete marks (Delete key). Ctrl+Z undoes. The copy gets “(%@)”." = "Arrasta para desenhar. Com “Selecionar” podes mover ou apagar marcas (tecla Delete). Ctrl+Z desfaz. A cópia fica com “(%@)”.";
+"Check that they open in Photos." = "Confirma que abrem nas Fotografias.";
+"Split couldn’t save the PDF." = "O Split não conseguiu gravar o PDF.";
+"You can also drag files from File Explorer onto the grid. Drag pages to change their order." = "Também podes arrastar ficheiros do Explorador de Ficheiros para a grelha. Arrasta as páginas para mudar a ordem.";

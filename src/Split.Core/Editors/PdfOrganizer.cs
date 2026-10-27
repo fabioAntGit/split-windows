@@ -146,7 +146,7 @@ public sealed class PdfOrganizerModel : IDisposable
 
     public string First { get; }
     public List<PageItem> Items { get; private set; } = [];
-    public HashSet<Guid> Selection { get; private set; } = [];
+    public HashSet<Guid> Selection { get; set; } = [];
     public string? Note { get; private set; }
 
     /// <summary>Raised when the pages, the selection or the note changed, on the calling thread.</summary>

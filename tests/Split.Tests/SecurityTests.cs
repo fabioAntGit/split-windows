@@ -134,6 +134,8 @@ public static class SecurityTests
                         catch (Exception error) { Check(Explain.Error(error).FullText.Length > 25, $"{name}: an error without an explanation"); }
                     }
                     try { MediaConverter.ProbeFile(file); } catch (Problem) { }
+                    // The media editor reads the same file for its player, filmstrip and waveform.
+                    using (var model = new MediaEditorModel(file)) model.Loaded.Wait();
                 }
             });
         });

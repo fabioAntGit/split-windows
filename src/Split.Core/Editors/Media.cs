@@ -265,7 +265,7 @@ public sealed class MediaEditorModel : IDisposable
     /// <summary>Formats the player takes as they are; anything else, or a file it refuses, gets a light preview copy.</summary>
     private static readonly Format[] Native = [Format.Mp4, Format.M4v, Format.M4a, Format.Mp3, Format.Wav];
 
-    private readonly CancellationTokenSource cancel = new();
+    private readonly CancelToken cancel = new();
     private string? scratch;
 
     public MediaEditorModel(string path)
@@ -288,6 +288,9 @@ public sealed class MediaEditorModel : IDisposable
     public string? PlaybackSource { get; private set; }
 
     public bool IsProxy { get; private set; }
+
+    /// <summary>The file was read: what it holds is known.</summary>
+    public bool Probed { get; private set; }
     public IReadOnlyList<SKBitmap> Thumbnails { get; private set; } = [];
     public float[] Waveform { get; private set; } = [];
     public EditMode Mode { get; set; } = EditMode.View;
@@ -304,6 +307,9 @@ public sealed class MediaEditorModel : IDisposable
 
     /// <summary>Raised from the thread that changed it.</summary>
     public event Action? Changed;
+
+    /// <summary>For the window to say the edit or the playback changed.</summary>
+    public void Notify() => Changed?.Invoke();
 
     public bool IsVideo => Probe.HasVideo;
     public bool Ready => PlaybackSource is not null && Failure is null;
@@ -327,9 +333,11 @@ public sealed class MediaEditorModel : IDisposable
             if (!probe.ContainsAudio && !probe.HasVideo)
                 throw new Problem(L("“%@” has no sound or picture that can be edited.", System.IO.Path.GetFileName(Path)));
             Probe = probe;
+            Probed = true;
             Edit.Duration = probe.Duration;
             Edit.End = probe.Duration;
-            if (Native.Contains(Formats.Detect(Path) ?? Format.Mp4))
+            // A phone clip keeps its turn in a tag some players ignore; the preview copy has it turned in the pixels.
+            if (Native.Contains(Formats.Detect(Path) ?? Format.Mp4) && probe.Rotation % 360 == 0)
             {
                 PlaybackSource = Path;
                 Loading = null;
@@ -343,12 +351,17 @@ public sealed class MediaEditorModel : IDisposable
             {
                 try
                 {
-                    if (!probe.HasVideo) Waveform = MediaEditRenderer.Waveform(Path);
-                    else Thumbnails = MediaEditRenderer.Filmstrip(Path, probe.Duration);
+                    // Running inside the model's own token, so closing the window stops ffmpeg.
+                    Thumbnails = JobProgress.Run(_ => { }, cancel, () =>
+                    {
+                        if (!probe.HasVideo) Waveform = MediaEditRenderer.Waveform(Path);
+                        IReadOnlyList<SKBitmap> frames = probe.HasVideo ? MediaEditRenderer.Filmstrip(Path, probe.Duration) : [];
+                        return frames;
+                    });
                 }
                 catch (Exception e) when (e is Problem or IOException) { }
                 Changed?.Invoke();
-            }, cancel.Token);
+            });
         }
         catch (Exception e) when (e is not OutOfMemoryException)
         {
@@ -372,7 +385,7 @@ public sealed class MediaEditorModel : IDisposable
                 ? ["-map", "0:v:0", "-map", "0:a:0?", "-vf", "scale=-2:'min(720,ih)'," + MediaConverter.EvenDimensions,
                    "-c:v", "libx264", "-preset", "ultrafast", "-crf", "30", "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "128k"]
                 : ["-vn", "-c:a", "aac", "-b:a", "160k"];
-            JobProgress.Run(fraction => { LoadingFraction = fraction; Changed?.Invoke(); }, null,
+            JobProgress.Run(fraction => { LoadingFraction = fraction; Changed?.Invoke(); }, cancel,
                             () => { MediaConverter.Encode(Path, arguments, proxy, L("Preparing the preview"), duration: Probe.Duration); return 0; });
             IsProxy = true;
             PlaybackSource = proxy;
