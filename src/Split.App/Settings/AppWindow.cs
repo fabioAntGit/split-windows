@@ -24,19 +24,19 @@ public class AppWindow : Window
     private readonly List<Border> buttons = [];
     private readonly Action look, language;
 
-    public AppWindow(string title, Size client, bool canMinimize = true, bool sizeToHeight = false)
+    public AppWindow(string title, Size client, bool canMinimize = true, bool sizeToHeight = false, bool resizable = false)
     {
         Title = title;
         Width = client.Width;
         if (sizeToHeight) SizeToContent = SizeToContent.Height; else Height = client.Height + TitleBarHeight;
-        ResizeMode = canMinimize ? ResizeMode.CanMinimize : ResizeMode.NoResize;
+        ResizeMode = resizable ? ResizeMode.CanResize : canMinimize ? ResizeMode.CanMinimize : ResizeMode.NoResize;
         ShowInTaskbar = true;
         WindowStartupLocation = WindowStartupLocation.CenterScreen;
         UseLayoutRounding = true;
         TextOptions.SetTextFormattingMode(this, TextFormattingMode.Display);
         WindowChrome.SetWindowChrome(this, new WindowChrome
         {
-            CaptionHeight = TitleBarHeight, ResizeBorderThickness = new Thickness(0), GlassFrameThickness = new Thickness(0),
+            CaptionHeight = TitleBarHeight, ResizeBorderThickness = new Thickness(resizable ? 6 : 0), GlassFrameThickness = new Thickness(0),
             CornerRadius = new CornerRadius(0), UseAeroCaptionButtons = false,
         });
 
@@ -59,6 +59,8 @@ public class AppWindow : Window
         Grid.SetColumn(right, 1);
         titleRow.Children.Add(right);
         bar.Child = titleRow;
+        // A maximised window with its own title bar spills over the screen edges by the width of the resize border.
+        if (resizable) StateChanged += (_, _) => root.Margin = WindowState == WindowState.Maximized ? SystemParameters.WindowResizeBorderThickness : new Thickness(0);
         root.Children.Add(bar);
         Grid.SetRow(body, 1);
         root.Children.Add(body);

@@ -112,3 +112,4 @@
 "The page may be damaged or huge. Open the PDF in a PDF reader to check." = "La page est peut-être endommagée ou énorme. Ouvrez le PDF dans un lecteur PDF pour vérifier.";
 "Turn on “Use Word, Excel and PowerPoint” in Settings, or install LibreOffice: winget install -e --id TheDocumentFoundation.LibreOffice" = "Activez « Utiliser Word, Excel et PowerPoint » dans les Réglages, ou installez LibreOffice : winget install -e --id TheDocumentFoundation.LibreOffice";
 "Word couldn’t export the document (%@), so Split’s own converter was used and the layout may differ." = "Word n’a pas pu exporter le document (%@) : le convertisseur de Split a été utilisé et la mise en page peut différer.";
+"Drag to draw. With “Select” you can move or delete marks (Delete key). Ctrl+Z undoes. The copy gets “(%@)”." = "Faites glisser pour dessiner. Avec « Sélectionner », vous pouvez déplacer ou supprimer des marques (touche Suppr). Ctrl+Z annule. La copie reçoit « (%@) ».";

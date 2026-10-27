@@ -43,7 +43,13 @@ public interface IPlatform
     /// <paramref name="output"/> in the format asked. Apps the job starts stay open until <see cref="QuitLaunchedOfficeApps"/>.
     /// </summary>
     void ExportWithOffice(OfficeApp app, string source, string output, OfficeExport export);
+
+    /// <summary>The faces the system finds in a grey picture (one byte per pixel, row after row), in its pixels.</summary>
+    IReadOnlyList<PixelBox> FindFaces(byte[] gray, int width, int height);
 }
+
+/// <summary>A rectangle of whole pixels.</summary>
+public readonly record struct PixelBox(int X, int Y, int Width, int Height);
 
 public static class Platform
 {

@@ -15,5 +15,7 @@
     <PackageVersion Include="System.Security.Cryptography.Pkcs" Version="10.0.14" />
     <PackageVersion Include="PDFsharp-MigraDoc" Version="6.2.4" />
     <PackageVersion Include="bblanchon.PDFium.Win32" Version="158.0.8125" />
+    <!-- Same version as the SkiaSharp that Svg.Skia brings, so there is a single SkiaSharp. -->
+    <PackageVersion Include="SkiaSharp.Views.WPF" Version="4.148.0" />
   </ItemGroup>
 </Project>
