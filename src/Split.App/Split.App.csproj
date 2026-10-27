@@ -15,6 +15,15 @@
     <PublishTrimmed>false</PublishTrimmed>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="H.NotifyIcon.Wpf" />
+    <!-- WPF leaves System.IO out of the implicit usings (Path would clash with the shape); the files that draw shapes name theirs. -->
+    <Using Include="System.IO" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- Inter and the Fluent icons are loaded from files next to the program, and the icon name tables are read from there too. -->
+    <None Include="..\..\assets\fonts\*.ttf;..\..\assets\fonts\*.json" Link="fonts\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\Split.Core\Split.Core.csproj" />
     <ProjectReference Include="..\Split.Windows\Split.Windows.csproj" />
   </ItemGroup>

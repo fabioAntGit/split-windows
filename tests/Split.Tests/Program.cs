@@ -48,6 +48,7 @@ LanguageTests.Register();
 WheelTests.Register();
 ErrorTests.Register();
 CoreTests.Register();
+UiTests.Register();
 
 Test("Integrity", "Originals are never changed", () =>
 {

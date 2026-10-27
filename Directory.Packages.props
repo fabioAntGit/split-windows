@@ -4,5 +4,6 @@
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
   </PropertyGroup>
   <ItemGroup>
+    <PackageVersion Include="H.NotifyIcon.Wpf" Version="2.4.1" />
   </ItemGroup>
 </Project>
