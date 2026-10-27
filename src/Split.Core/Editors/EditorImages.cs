@@ -139,6 +139,14 @@ public static class EditorImages
         if (format == Format.Heic) format = needsAlpha ? Format.Png : Format.Jpg;
         if (needsAlpha && format == Format.Jpg) format = Format.Png;
         var output = Output.Url(source, format.Ext(), suffix);
+        Write(image, output, format, Settings.Quality, Settings.KeepsMetadata ? source : null);
+        return output;
+    }
+
+    /// <summary>Encodes the bitmap at <paramref name="output"/> (hidden temp first, renamed when done); the camera data of <paramref name="metadataFrom"/> goes along when given.</summary>
+    public static void Write(SKBitmap image, string output, Format format, Quality quality, string? metadataFrom = null)
+    {
+        Imaging.Initialize();
         var temp = Output.TempSibling(output);
         try
         {
@@ -148,8 +156,8 @@ public static class EditorImages
                 picture.BackgroundColor = MagickColors.White;
                 picture.Alpha(AlphaAction.Remove);
             }
-            if (Settings.KeepsMetadata) CopyMetadata(source, picture);
-            Define(picture, format);
+            if (metadataFrom is not null) CopyMetadata(metadataFrom, picture);
+            Define(picture, format, quality);
             try
             {
                 using (var file = File.Create(temp)) picture.Write(file, Coder(format));
@@ -172,7 +180,6 @@ public static class EditorImages
             throw;
         }
         Output.Commit(temp, output);
-        return output;
     }
 
     /// <summary>The camera data of the original travels with the edited picture, except what the edit made untrue: the orientation (the pixels are upright now) and the pixel size.</summary>
@@ -206,15 +213,15 @@ public static class EditorImages
         Format.Avif => MagickFormat.Avif, Format.Tiff => MagickFormat.Tiff, _ => MagickFormat.Png,
     };
 
-    private static void Define(MagickImage image, Format format)
+    private static void Define(MagickImage image, Format format, Quality quality)
     {
         switch (format)
         {
             case Format.Jpg or Format.Avif or Format.Jxl:
-                image.Quality = (uint)Settings.Quality.Webp();
+                image.Quality = (uint)quality.Webp();
                 break;
             case Format.Webp:
-                image.Quality = (uint)Settings.Quality.Webp();
+                image.Quality = (uint)quality.Webp();
                 image.Settings.SetDefine(MagickFormat.WebP, "alpha-quality", "100");
                 break;
             case Format.Png:

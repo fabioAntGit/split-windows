@@ -63,6 +63,10 @@ SecurityAudit.Register();
 EditorTests.Register();
 EditorUiTests.Register();
 ToolTests.Register();
+CollageTests.Register();
+PdfOrganizerTests.Register();
+MediaEditTests.Register();
+EditorWindowTests.Register();
 
 Test("Integrity", "Originals are never changed", () =>
 {

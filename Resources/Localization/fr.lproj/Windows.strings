@@ -124,3 +124,6 @@
 "Reinstall Split to get it back." = "Réinstallez Split pour le récupérer.";
 "The terminal couldn’t be opened." = "Le terminal n’a pas pu être ouvert.";
 "Install Windows Terminal from the Microsoft Store, or check that PowerShell is available." = "Installez Windows Terminal depuis le Microsoft Store, ou vérifiez que PowerShell est disponible.";
+"Check that they open in Photos." = "Vérifiez qu’elles s’ouvrent dans Photos.";
+"Split couldn’t save the PDF." = "Split n’a pas pu enregistrer le PDF.";
+"You can also drag files from File Explorer onto the grid. Drag pages to change their order." = "Vous pouvez aussi glisser des fichiers de l’Explorateur de fichiers sur la grille. Glissez les pages pour changer leur ordre.";

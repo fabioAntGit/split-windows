@@ -14,7 +14,7 @@ namespace Split.Tests;
 public static class EditorUiTests
 {
     /// <summary>A window shown far off screen so that its Skia surface is really drawn.</summary>
-    private static T Shown<T>(T window) where T : Window
+    internal static T Shown<T>(T window) where T : Window
     {
         window.WindowStartupLocation = WindowStartupLocation.Manual;
         window.Left = -12000;
@@ -25,7 +25,7 @@ public static class EditorUiTests
         return window;
     }
 
-    private static BitmapSource Picture(Window window)
+    internal static BitmapSource Picture(Window window)
     {
         var root = (Grid)window.Content;
         var bitmap = new RenderTargetBitmap((int)root.ActualWidth, (int)root.ActualHeight, 96, 96, PixelFormats.Pbgra32);
@@ -37,7 +37,7 @@ public static class EditorUiTests
         return bitmap;
     }
 
-    private static void Save(string folder, string name, BitmapSource image, ref int made)
+    internal static void Save(string folder, string name, BitmapSource image, ref int made)
     {
         Check(Ui.Spread(image) > 4, $"{name}: the image is almost uniform: was the view empty?");
         var encoder = new PngBitmapEncoder();
@@ -47,7 +47,7 @@ public static class EditorUiTests
         made++;
     }
 
-    private static T WithLook<T>(LookColor look, Func<T> body)
+    internal static T WithLook<T>(LookColor look, Func<T> body)
     {
         var before = Settings.LookColor;
         Look.Color = look;
@@ -55,7 +55,7 @@ public static class EditorUiTests
         finally { Look.Color = before; }
     }
 
-    private static T Find<T>(DependencyObject root) where T : DependencyObject
+    internal static T Find<T>(DependencyObject root) where T : DependencyObject
     {
         for (var i = 0; i < VisualTreeHelper.GetChildrenCount(root); i++)
         {
@@ -66,7 +66,7 @@ public static class EditorUiTests
         return null!;
     }
 
-    private static List<T> FindAll<T>(DependencyObject root)
+    internal static List<T> FindAll<T>(DependencyObject root)
     {
         var all = new List<T>();
         for (var i = 0; i < VisualTreeHelper.GetChildrenCount(root); i++)
@@ -85,7 +85,6 @@ public static class EditorUiTests
             foreach (var tool in MarkupTools.All) Check(Icons.Find(tool.Symbol()) is not null, $"the symbol of “{tool.Title()}” has no icon");
             foreach (var symbol in new[] { "rotate.left", "rotate.right", "arrow.left.and.right.righttriangle.left.righttriangle.right", "arrow.up.and.down.righttriangle.up.righttriangle.down", "chevron.down" })
                 Check(Icons.Find(symbol) is not null, $"“{symbol}” has no icon");
-            Check(EditorLauncher.Handles(EditorTool.Crop) && EditorLauncher.Handles(EditorTool.Background) && !EditorLauncher.Handles(EditorTool.Collage) && !EditorLauncher.Handles(EditorTool.Media), "this phase opens the four image editors");
             Check(EditorLauncher.WindowTitle(EditorTool.Crop, [@"C:\a\photo.jpg"]) == "Crop — photo.jpg", "the window title names the file");
             Check(EditorLauncher.WindowTitle(EditorTool.Adjust, [@"C:\a\1.jpg", @"C:\a\2.png"]) == "Adjust — 2 images", "or the number of images");
         });
@@ -101,7 +100,7 @@ public static class EditorUiTests
             var windows = Application_OpenEditors();
             Check(windows.Count == 4, $"four windows, not {windows.Count}");
             Check(windows.All(w => w is EditorWindow and AppWindow), "they are app windows");
-            Check(windows.All(w => w.ResizeMode == ResizeMode.CanResize && w.MinWidth == 780), "resizable, with the smallest size of the spec");
+            Check(windows.All(w => w.ResizeMode == ResizeMode.CanResize && w.MinWidth == 780), "resizable, with the smallest size of the editors");
             foreach (var window in windows) ((EditorWindow)window).CloseNow();
             Check(Application_OpenEditors().Count == 0, "closed");
 

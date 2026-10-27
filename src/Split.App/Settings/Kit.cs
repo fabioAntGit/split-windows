@@ -165,7 +165,8 @@ public sealed class Toggle : Border
 /// <summary>A row of choices of which one is chosen.</summary>
 public sealed class Segmented : Border
 {
-    public Segmented(IReadOnlyList<string> labels, int selected, Action<int> choose, string name, double? width = null)
+    /// <param name="symbols">An icon before each label, when given.</param>
+    public Segmented(IReadOnlyList<string> labels, int selected, Action<int> choose, string name, double? width = null, IReadOnlyList<string>? symbols = null)
     {
         CornerRadius = new CornerRadius(7);
         Background = Palette.Brush(Palette.With(Palette.Primary, 0.08));
@@ -181,11 +182,23 @@ public sealed class Segmented : Border
             label.VerticalAlignment = VerticalAlignment.Center;
             label.TextTrimming = TextTrimming.CharacterEllipsis;
             label.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+            var icon = symbols is null ? 0 : 16.0;
             // Equal shares while they fit; a longer label (a translation) takes the room it needs before any is cut.
-            grid.ColumnDefinitions.Add(new ColumnDefinition { MinWidth = Math.Ceiling(label.DesiredSize.Width) + 8 });
+            grid.ColumnDefinitions.Add(new ColumnDefinition { MinWidth = Math.Ceiling(label.DesiredSize.Width) + 8 + icon });
+            UIElement content = label;
+            if (symbols is not null)
+            {
+                var symbol = Icons.Block(symbols[i], 12);
+                symbol.Margin = new Thickness(0, 0, 4, 0);
+                var pair = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Center };
+                label.HorizontalAlignment = HorizontalAlignment.Left;
+                pair.Children.Add(symbol);
+                pair.Children.Add(label);
+                content = pair;
+            }
             var segment = new Border
             {
-                Child = label, Height = 24, CornerRadius = new CornerRadius(5), Padding = new Thickness(4, 0, 4, 0), Cursor = Cursors.Arrow, Focusable = true,
+                Child = content, Height = 24, CornerRadius = new CornerRadius(5), Padding = new Thickness(4, 0, 4, 0), Cursor = Cursors.Arrow, Focusable = true,
                 Background = i == selected ? Palette.Brush(Palette.With(Palette.Primary, 0.2)) : Brushes.Transparent,
             };
             Grid.SetColumn(segment, i);

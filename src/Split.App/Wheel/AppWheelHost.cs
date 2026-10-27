@@ -9,8 +9,7 @@ public sealed class AppWheelHost : IWheelHost
 {
     public void OpenEditor(EditorTool tool, IReadOnlyList<string> paths)
     {
-        if (EditorLauncher.Handles(tool)) EditorLauncher.Open(tool, paths);
-        else Hud.Current.ShowNotice(Pending.Error());
+        EditorLauncher.Open(tool, paths);
     }
 
     public void Perform(FileAction action, IReadOnlyList<string> paths)

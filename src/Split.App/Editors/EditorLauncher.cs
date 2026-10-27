@@ -5,8 +5,6 @@ namespace Split.App;
 /// <summary>Opens the editors. Each editor window opens once for the same files: asking again brings it to the front.</summary>
 public static class EditorLauncher
 {
-    public static bool Handles(EditorTool tool) => tool is EditorTool.Crop or EditorTool.Annotate or EditorTool.Adjust or EditorTool.Background;
-
     /// <summary>Opens the editor; a file that can't be read is explained instead of opening an empty window.</summary>
     public static void Open(EditorTool tool, IReadOnlyList<string> paths)
     {
@@ -26,6 +24,25 @@ public static class EditorLauncher
                     break;
                 case EditorTool.Background:
                     Single(tool, paths, () => new BackgroundEditor(paths, WindowTitle(tool, paths), Preview(paths[0])));
+                    break;
+                case EditorTool.Collage:
+                    Single(tool, paths, () =>
+                    {
+                        foreach (var path in paths) FileCheck.Preflight(path, waitForDownload: false);
+                        var model = new CollageModel(paths);
+                        if (model.Thumbnails.Count == 0) throw new Problem(L("None of the images could be read."), L("Check that they open in Photos."));
+                        return new CollageEditor(model, WindowTitle(tool, paths));
+                    });
+                    break;
+                case EditorTool.Media:
+                    foreach (var path in paths) Single(tool, [path], () => new MediaEditor(path, WindowTitle(tool, [path])));
+                    break;
+                case EditorTool.PdfPages:
+                    Single(tool, paths, () =>
+                    {
+                        foreach (var path in paths) FileCheck.Preflight(path, waitForDownload: false);
+                        return new PdfOrganizerEditor(new PdfOrganizerModel(paths), WindowTitle(tool, paths));
+                    });
                     break;
             }
         }
