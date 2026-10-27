@@ -503,10 +503,10 @@ public static class WheelUiTests
                 foreach (var action in actions) action.Action([Fixtures.Url("notes.txt")]);
                 Check(asked.SequenceEqual(FileActions.All), "each slice asks the app for its own action");
 
-                // The app does the shelf itself; what other pieces will do says so for now.
+                // The app does the clipboard itself, with nothing to complain about.
                 WheelHost.Current = new AppWheelHost();
                 new AppWheelHost().Perform(FileAction.Copy, [Fixtures.Url("notes.txt")]);
-                Check(notices.Notices.Count == 1, "an action that isn’t done yet says so");
+                Check(notices.Notices.Count == 0 && System.Windows.Clipboard.GetFileDropList().Count == 1, "an action the app does says nothing");
             }
             finally
             {

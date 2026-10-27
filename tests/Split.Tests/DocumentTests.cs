@@ -257,7 +257,11 @@ public static class DocumentTests
             ExpectError("a damaged DOCX", ["damaged"], () => Conversions.Convert(broken, Format.Txt));
         });
 
-        Test("Errors", "Normalizing without sound", () => Skip("needs the quick tools"));
+        Test("Errors", "Normalizing without sound", () =>
+        {
+            var silent = Fixtures.Isolated("silent.mp4", "errors-silent");
+            ExpectError("normalizing without sound", ["has no sound"], () => Tools.Normalize(silent));
+        });
 
         // MARK: Office
 

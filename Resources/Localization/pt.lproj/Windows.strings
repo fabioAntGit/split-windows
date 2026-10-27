@@ -112,3 +112,14 @@
 "The page may be damaged or huge. Open the PDF in a PDF reader to check." = "A página pode estar danificada ou ser enorme. Abre o PDF num leitor de PDF para confirmar.";
 "Turn on “Use Word, Excel and PowerPoint” in Settings, or install LibreOffice: winget install -e --id TheDocumentFoundation.LibreOffice" = "Ativa “Usar Word, Excel e PowerPoint” nas Definições, ou instala o LibreOffice: winget install -e --id TheDocumentFoundation.LibreOffice";
 "Word couldn’t export the document (%@), so Split’s own converter was used and the layout may differ." = "O Word não conseguiu exportar o documento (%@), por isso foi usado o conversor do Split e o aspeto pode ser diferente.";
+"To make it smaller, convert to a more efficient format (for example WebP or AVIF for images, MP4 for videos)." = "Para a reduzir, converte para um formato mais eficiente (por exemplo WebP ou AVIF nas imagens, MP4 nos vídeos).";
+"HEIC can’t be written on Windows, so the compressed copy is a JPG." = "O Windows não consegue escrever HEIC, por isso a cópia comprimida é um JPG.";
+"Split couldn’t save the combined PDF." = "O Split não conseguiu guardar o PDF combinado.";
+"Videos are joined in name order and at the size of the first one. Check that the first one opens in a video player." = "Os vídeos são unidos por ordem de nome e com o tamanho do primeiro. Confirma que o primeiro abre num leitor de vídeo.";
+"Split couldn’t create the compressed version of “%@”." = "O Split não conseguiu criar a versão comprimida de “%@”.";
+"Some PDFs (forms, PDF/A, signed) can’t be rewritten. Try “Remove Metadata” or convert to images." = "Alguns PDFs (formulários, PDF/A, assinados) não podem ser reescritos. Experimenta “Remover metadados” ou converte para imagens.";
+"Split couldn’t save the clean copy of “%@”." = "O Split não conseguiu guardar a cópia limpa de “%@”.";
+"Removing the background needs the model that ships with Split." = "Remover o fundo precisa do modelo que vem com o Split.";
+"Reinstall Split to get it back." = "Reinstala o Split para o recuperar.";
+"The terminal couldn’t be opened." = "Não foi possível abrir o terminal.";
+"Install Windows Terminal from the Microsoft Store, or check that PowerShell is available." = "Instala o Windows Terminal a partir da Microsoft Store, ou confirma que o PowerShell está disponível.";
