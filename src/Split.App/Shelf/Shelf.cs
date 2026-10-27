@@ -239,17 +239,14 @@ public sealed class ShelfView : Border
         button.Click += (_, _) =>
         {
             var menu = new ContextMenu { PlacementTarget = button, Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom };
-            void Item(string title, Action run)
-            {
-                var item = new MenuItem { Header = title };
-                item.Click += (_, _) => run();
-                menu.Items.Add(item);
-            }
-            Item(L("Convert…"), () => WheelLauncher.Show(WheelKind.Convert, model.Items.ToList(), clickMode: true));
-            Item(L("Tools…"), () => WheelLauncher.Show(WheelKind.Tools, model.Items.ToList(), clickMode: true));
-            Item(L("Show in File Explorer"), () => Explorer.Reveal(model.Items.ToList()));
-            menu.Items.Add(new Separator());
-            Item(L("Empty the Shelf"), model.Clear);
+            MenuLook.Fill(menu,
+            [
+                new(L("Convert…"), "arrow.triangle.2.circlepath", () => WheelLauncher.Show(WheelKind.Convert, model.Items.ToList(), clickMode: true)),
+                new(L("Tools…"), "wrench.and.screwdriver", () => WheelLauncher.Show(WheelKind.Tools, model.Items.ToList(), clickMode: true)),
+                new(L("Show in File Explorer"), "folder", () => Explorer.Reveal(model.Items.ToList())),
+                new(null),
+                new(L("Empty the Shelf"), "trash", model.Clear),
+            ]);
             menu.IsOpen = true;
         };
         return button;

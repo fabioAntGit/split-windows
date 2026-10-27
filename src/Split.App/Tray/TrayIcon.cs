@@ -41,19 +41,7 @@ public sealed class TrayIcon : IDisposable
         icon.Icon = new Icon(stream);
     }
 
-    private void Rebuild()
-    {
-        var menu = icon.ContextMenu!;
-        menu.Items.Clear();
-        foreach (var entry in TrayMenu.Build(quit))
-        {
-            if (entry.IsSeparator) { menu.Items.Add(new Separator()); continue; }
-            var item = new MenuItem { Header = entry.Title, IsEnabled = entry.Enabled };
-            if (entry.Symbol is { } symbol) item.Icon = Icons.Block(symbol, 16);
-            if (entry.Run is { } run) item.Click += (_, _) => run();
-            menu.Items.Add(item);
-        }
-    }
+    private void Rebuild() => MenuLook.Fill(icon.ContextMenu!, TrayMenu.Build(quit));
 
     public void Dispose()
     {

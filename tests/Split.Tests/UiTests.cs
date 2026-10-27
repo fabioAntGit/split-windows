@@ -312,7 +312,7 @@ public static class UiTests
             finally { LaunchAtLogin.Set(false, name); }
         });
 
-        Test("Interface", "Snapshots: the HUD in each state and the shelf, in black and in white", () => Ui.Run(() =>
+        Test("Interface", "Snapshots: the HUD in each state, the shelf and the tray menu, in black and in white", () => Ui.Run(() =>
         {
             var folder = Path.Combine(Fixtures.Root, "_captures-windows");
             Directory.CreateDirectory(folder);
@@ -355,10 +355,22 @@ public static class UiTests
                     shelf.Add(files.Take(3));
                     Capture(folder, $"shelf-{look.Raw()}", new ShelfView(shelf), new Size(280, 350), ref made);
                     Capture(folder, $"shelf-empty-{look.Raw()}", new ShelfView(new ShelfModel()), new Size(280, 350), ref made);
+
+                    var entries = TrayMenu.Build(() => { });
+                    var menu = new ContextMenu();
+                    MenuLook.Fill(menu, entries);
+                    Check(menu.Items.Count == entries.Count && menu.Items[6] is MenuItem { IsEnabled: false }, "each line of the menu is there, the hint disabled");
+                    // A menu can't be put in another element, so it is opened and drawn through a brush.
+                    menu.Placement = System.Windows.Controls.Primitives.PlacementMode.Absolute;
+                    menu.IsOpen = true;
+                    Ui.Settle(0.3);
+                    var (width, height) = (Math.Ceiling(menu.ActualWidth), Math.Ceiling(menu.ActualHeight));
+                    Capture(folder, $"tray-menu-{look.Raw()}", new Border { Background = new VisualBrush(menu) { Stretch = Stretch.None, AlignmentX = AlignmentX.Left, AlignmentY = AlignmentY.Top } }, new Size(width, height), ref made);
+                    menu.IsOpen = false;
                 }
             }
             finally { Look.Color = color; }
-            Check(made == 18, $"only {made} captures were made");
+            Check(made == 20, $"only {made} captures were made");
         }));
     }
 
