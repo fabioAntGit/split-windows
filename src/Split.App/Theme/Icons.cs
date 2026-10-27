@@ -25,6 +25,7 @@ public static class Icons
         ["chart.pie"] = "data_pie",
         ["checkmark.circle"] = "checkmark_circle",
         ["chevron.backward"] = "chevron_left",
+        ["chevron.down"] = "chevron_down",
         ["chevron.right"] = "chevron_right",
         ["circle"] = "circle",
         ["clock"] = "clock",
