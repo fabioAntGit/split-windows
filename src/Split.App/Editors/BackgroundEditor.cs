@@ -104,7 +104,7 @@ public sealed class BackgroundEditor : EditorWindow
         ValueSlider Slider(string title, double value, double max, Func<BackdropStyle, double, BackdropStyle> change) =>
             new(title, value, 0, max, null, v => Set(s => change(s, v)));
         var ratio = new DropDown(BackdropRatios.All.Select(r => r.Title()).ToList(), BackdropRatios.All.ToList().IndexOf(style.Ratio),
-                                 i => Set(s => s with { Ratio = BackdropRatios.All[i] }), L("Aspect Ratio"), 170);
+                                 i => Set(s => s with { Ratio = BackdropRatios.All[i] }), L("Aspect Ratio"), 130);
 
         var sections = new List<UIElement>
         {

@@ -380,7 +380,7 @@ public sealed class AnnotateModel
         }
         catch (Exception e) when (e is not Problem)
         {
-            Note = L("Face detection failed: %@", e.Message);
+            Note = L("Face detection failed: %@", e.Message.Length > 0 ? e.Message : e.GetType().Name);
         }
         Changed?.Invoke();
     }

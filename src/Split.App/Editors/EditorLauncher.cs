@@ -31,7 +31,7 @@ public static class EditorLauncher
         }
         catch (Exception error) when (error is not OutOfMemoryException)
         {
-            NotificationHud.Shared.ShowError(Explain.Error(error, paths[0]), L("Couldn’t open the editor “%@”", tool.Title()));
+            Hud.Current.ShowDone([], L("Couldn’t open the editor “%@”", tool.Title()), [new JobFailure(Path.GetFileName(paths[0]), Explain.Error(error, paths[0]))]);
         }
     }
 

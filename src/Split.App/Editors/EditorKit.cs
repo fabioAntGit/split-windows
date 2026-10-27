@@ -270,7 +270,7 @@ public sealed class SliderBar : FrameworkElement
 
     private double X(double v) => 9 + (ActualWidth - 18) * (v - minimum) / (maximum - minimum);
 
-    private void Move(double next)
+    public void Move(double next)
     {
         next = Math.Clamp(next, minimum, maximum);
         if (next == value) return;

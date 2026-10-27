@@ -102,3 +102,4 @@
 "Version %@" = "Versión %@";
 "Windows dialogs, such as Open, always use the language of Windows." = "Los cuadros de diálogo de Windows, como Abrir, usan siempre el idioma de Windows.";
 "Windows refused: %@" = "Windows lo rechazó: %@";
+"Drag to draw. With “Select” you can move or delete marks (Delete key). Ctrl+Z undoes. The copy gets “(%@)”." = "Arrastra para dibujar. Con “Seleccionar” puedes mover o borrar marcas (tecla Supr). Ctrl+Z deshace. La copia lleva “(%@)”.";
