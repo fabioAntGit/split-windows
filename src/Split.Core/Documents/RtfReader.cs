@@ -10,7 +10,7 @@ namespace Split;
 /// </summary>
 public static class RtfReader
 {
-    private static readonly Regex Attachment = new(@"\{\\\*?\\NeXTGraphic\s+(?<name>[^\\{}]*?)\s*(?<rest>(?:\\[a-zA-Z]+-?\d*\s*)*)\}");
+    private static readonly Regex Attachment = new(@"\{(?:\\\*)?\\NeXTGraphic\s+(?<name>[^\\{}]*?)\s*(?<rest>(?:\\[a-zA-Z]+-?\d*\s*)*)\}");
 
     /// <summary>The first private-use character; marker <c>i</c> stands for the i-th attachment.</summary>
     private const int FirstMarker = 0xE000;

@@ -191,7 +191,8 @@ public static class PdfTools
                 {
                     Text = c.Character.ToString(), Font = Family(c.Font), Size = Math.Round(c.Size * 2) / 2, Bold = c.Bold, Italic = c.Italic, Color = c.Color,
                 };
-                if (open is not null && open.SameLook(look))
+                // The spaces PDFium puts between words have no font of their own: they take the look of the text around them.
+                if (open is not null && (open.SameLook(look) || (c.Font.Length == 0 && char.IsWhiteSpace(c.Character))))
                 {
                     open.Text += c.Character;
                     continue;
