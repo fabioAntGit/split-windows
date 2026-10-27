@@ -76,12 +76,13 @@ public sealed class ArchiveTools : IConversionFamily
             }
             else
             {
+                var isZip = FileCheck.Sniff(path) == "ZIP";
                 using var archive = ArchiveFactory.OpenArchive(path);
                 foreach (var entry in archive.Entries)
                 {
                     // Zip files mark a link in the Unix mode kept in the upper half of the attributes.
                     var link = entry.LinkTarget;
-                    if (string.IsNullOrEmpty(link) && entry.Attrib is { } attributes && ((attributes >> 16) & 0xF000) == 0xA000) link = "?";
+                    if (isZip && string.IsNullOrEmpty(link) && entry.Attrib is { } attributes && ((attributes >> 16) & 0xF000) == 0xA000) link = "?";
                     Entry(entry.Key, entry.IsDirectory, link, entry.OpenEntryStream);
                 }
             }
