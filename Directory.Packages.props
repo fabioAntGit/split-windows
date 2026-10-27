@@ -13,5 +13,7 @@
     <PackageVersion Include="PDFsharp" Version="6.2.4" />
     <!-- PDFsharp 6.2.4 pulls 8.0.1, which has a security advisory. -->
     <PackageVersion Include="System.Security.Cryptography.Pkcs" Version="10.0.14" />
+    <!-- Same version as the SkiaSharp that Svg.Skia brings, so there is a single SkiaSharp. -->
+    <PackageVersion Include="SkiaSharp.Views.WPF" Version="4.148.0" />
   </ItemGroup>
 </Project>

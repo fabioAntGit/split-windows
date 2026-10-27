@@ -16,6 +16,7 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="H.NotifyIcon.Wpf" />
+    <PackageReference Include="SkiaSharp.Views.WPF" />
     <!-- WPF leaves System.IO out of the implicit usings (Path would clash with the shape); the files that draw shapes name theirs. -->
     <Using Include="System.IO" />
   </ItemGroup>
