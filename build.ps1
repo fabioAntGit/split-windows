@@ -6,8 +6,16 @@ $ErrorActionPreference = 'Stop'
 $env:Path = [Environment]::GetEnvironmentVariable('Path', 'Machine') + ';' + [Environment]::GetEnvironmentVariable('Path', 'User')
 Set-Location $PSScriptRoot
 
-# Restore needs the network, so it runs only when nothing was restored yet; builds stay offline.
-if (-not (Test-Path tests/Split.Tests/obj/project.assets.json)) {
+# Restore needs the network, so it runs only when nothing was restored yet or a project or
+# package file changed since (a new package version); builds stay offline.
+$assets = 'tests/Split.Tests/obj/project.assets.json'
+$stale = -not (Test-Path $assets)
+if (-not $stale) {
+    $restored = (Get-Item $assets).LastWriteTime
+    $files = @(Get-ChildItem src, tests -Recurse -File -Include *.csproj, *.props | Where-Object { $_.FullName -notmatch '\\(obj|bin)\\' }) + @(Get-ChildItem *.props)
+    $stale = [bool]($files | Where-Object { $_.LastWriteTime -gt $restored } | Select-Object -First 1)
+}
+if ($stale) {
     dotnet restore Split.sln
     if ($LASTEXITCODE -ne 0) { Write-Error 'restore failed'; exit 1 }
 }
