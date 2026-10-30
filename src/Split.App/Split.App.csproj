@@ -7,11 +7,9 @@
     <UseWPF>true</UseWPF>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon>Split.ico</ApplicationIcon>
-    <!-- One self-contained publish per architecture: -r win-x64 / win-arm64. -->
+    <!-- One self-contained publish per architecture (-r win-x64 / win-arm64), loose files: Split.exe and splitapp.exe share one runtime folder. -->
     <RuntimeIdentifiers>win-x64;win-arm64</RuntimeIdentifiers>
     <SelfContained Condition="'$(RuntimeIdentifier)' != ''">true</SelfContained>
-    <PublishSingleFile>true</PublishSingleFile>
-    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
     <!-- Trimming breaks reflection-heavy WPF and COM late binding. -->
     <PublishTrimmed>false</PublishTrimmed>
   </PropertyGroup>
