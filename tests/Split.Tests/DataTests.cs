@@ -79,10 +79,22 @@ public static class DataTests
             Check(notes.Any(n => n.Contains("Comments")) && notes.Any(n => n.Contains("#text")), $"what JSON can’t hold is said: {string.Join("; ", notes)}");
         });
 
+        Test("Data", "XML with a DOCTYPE converts: its entities expand, its DTD is never fetched", () =>
+        {
+            var xml = "<?xml version=\"1.0\"?><!DOCTYPE note SYSTEM \"http://example.invalid/note.dtd\"><note><to>Ana</to></note>";
+            Check(JsonWriter.String(XmlBridge.Json(XmlBridge.Parse(Encoding.UTF8.GetBytes(xml)))).Contains("\"Ana\""), "a document naming an outside DTD");
+            var named = "<?xml version=\"1.0\"?><!DOCTYPE r [<!ENTITY who \"Ana\">]><r>Hi &who;</r>";
+            var json = JsonWriter.String(XmlBridge.Json(XmlBridge.Parse(Encoding.UTF8.GetBytes(named))));
+            Check(json.Contains("\"Hi Ana\""), $"an entity of its own: {json}");
+        });
+
         Test("Data", "Hostile XML: external entities, billion laughs and deep nesting", () =>
         {
             var wire = "<?xml version=\"1.0\"?><!DOCTYPE r [<!ENTITY x SYSTEM \"file:///C:/Windows/win.ini\">]><r>a&x;b</r>";
-            ExpectError("an external entity", ["could not be read", "entities"], () => XmlBridge.Parse(Encoding.UTF8.GetBytes(wire)));
+            var leaked = "";
+            try { leaked = JsonWriter.String(XmlBridge.Json(XmlBridge.Parse(Encoding.UTF8.GetBytes(wire)))); }
+            catch (Problem problem) { Check(problem.Message.Contains("could not be read"), problem.Message); }
+            Check(!leaked.Contains("16-bit") && !leaked.Contains("[fonts]"), $"an external entity is never read: {leaked}");
             var entities = "<!ENTITY l0 \"ha\">";
             for (var level = 1; level <= 9; level++) entities += $"<!ENTITY l{level} \"" + string.Concat(Enumerable.Repeat($"&l{level - 1};", 10)) + "\">";
             var laughs = $"<?xml version=\"1.0\"?><!DOCTYPE r [{entities}]><r>&l9;</r>";

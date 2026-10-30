@@ -154,7 +154,7 @@ public static class Xlsx
         }
         catch (Exception e) when (e is InvalidDataException or System.Xml.XmlException)
         {
-            // A DOCTYPE (entities to fetch or to expand without limit) never belongs in a workbook.
+            // A damaged part, or entities that expand without limit.
             throw new Problem(invalid.Message, invalid.Suggestion, e.Message);
         }
     }

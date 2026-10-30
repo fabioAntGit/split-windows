@@ -3,8 +3,8 @@ using System.Xml;
 namespace Split;
 
 /// <summary>
-/// Reads XML as a stream of events. Every file read here comes from a stranger, so a DOCTYPE is
-/// refused outright (no entities to expand, none to fetch) and the document size is capped.
+/// Reads XML as a stream of events. Every file read here comes from a stranger, so nothing outside it is
+/// ever fetched (no external entity, no DTD to load) and the entities and the document size are capped.
 /// </summary>
 internal static class XmlEvents
 {
@@ -13,7 +13,7 @@ internal static class XmlEvents
 
     public static XmlReaderSettings Safe() => new()
     {
-        DtdProcessing = DtdProcessing.Prohibit,
+        DtdProcessing = DtdProcessing.Parse,
         XmlResolver = null,
         MaxCharactersFromEntities = 1_000_000,
         MaxCharactersInDocument = 256_000_000,
