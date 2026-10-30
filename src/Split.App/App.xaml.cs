@@ -44,7 +44,7 @@ public partial class App : Application
             Settings.DidShowWelcome = true;
             AppWindows.ShowHelp();
         }
-        if (e.Args.Length > 0) WheelLauncher.Open(e.Args);
+        if (e.Args.Length > 0) instance.Receive(e.Args);
     }
 
     /// <summary>Files opened with Split, or sent by a second start. A start without files brings up the settings, like opening an app again.</summary>
