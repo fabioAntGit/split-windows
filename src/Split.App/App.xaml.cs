@@ -26,6 +26,7 @@ public partial class App : Application
 
         NotificationHud.Shared.Attach(Dispatcher);
         tray = new TrayIcon(Quit);
+        if (Settings.PlaySounds || Settings.PlayWheelSounds) _ = SoundOut.Prepare();
 
         WheelHost.Current = new AppWheelHost();
         WheelController.Install();

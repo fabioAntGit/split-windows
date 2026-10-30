@@ -152,14 +152,44 @@ public static class UiTests
 
         Test("Interface", "Sounds: short soft drops that start and end in silence, the wheel’s the faintest", () =>
         {
-            foreach (var (name, wave, longest, loudest) in new[] { ("done", Sounds.SuccessWave, 0.15, 0.4), ("error", Sounds.FailureWave, 0.25, 0.4), ("wheel", Sounds.HoverWave, 0.06, 0.15) })
+            foreach (var (name, samples, longest, loudest) in new[] { ("done", Sounds.DoneDrop, 0.15, 0.4), ("error", Sounds.ErrorDrops, 0.25, 0.4), ("wheel", Sounds.WheelDrop, 0.06, 0.15) })
             {
-                Check(wave.Length > 44 && System.Text.Encoding.ASCII.GetString(wave, 0, 4) == "RIFF" && System.Text.Encoding.ASCII.GetString(wave, 8, 4) == "WAVE", $"{name}: a WAV file");
-                var samples = Enumerable.Range(0, (wave.Length - 44) / 2).Select(i => BitConverter.ToInt16(wave, 44 + 2 * i) / (double)short.MaxValue).ToArray();
-                Check(samples.Length / 44100.0 <= longest, $"{name}: {samples.Length / 44.1:0} ms");
+                Check(samples.Length > 0 && samples.Length / (double)SoundOut.Rate <= longest, $"{name}: {samples.Length * 1000 / SoundOut.Rate} ms");
                 Check(samples.Max(Math.Abs) <= loudest, $"{name}: peak {samples.Max(Math.Abs):0.00}");
                 Check(Math.Abs(samples[0]) < 0.01 && Math.Abs(samples[^1]) < 0.01, $"{name}: no click at either end");
             }
+            List<(float[], int)> playing = [([0.5f, 0.5f, 0.5f], 0), ([0.75f, 0.75f], 0)];
+            var mixed = SoundOut.Mix(playing, 2);
+            Check(mixed.SequenceEqual([1f, 1f]), $"sounds that overlap add up, kept within full scale: {string.Join(", ", mixed)}");
+            Check(playing.Count == 1 && playing[0].Item2 == 2, "the one that ended is taken out, the other goes on where it was");
+        });
+
+        Test("Windows", "Sounds: quick ones all reach the device together, which rests once they end", () =>
+        {
+            Require(SoundOut.Prepare().Wait(TimeSpan.FromSeconds(10)), "the audio graph opens");
+            if (SoundOut.Available != true) Skip("this PC has no audio output");
+            var before = SoundOut.Mixed;
+            var started = System.Diagnostics.Stopwatch.StartNew();
+            SoundOut.Play(new float[Sounds.WheelDrop.Length]);
+            while (SoundOut.Mixed == before && started.ElapsedMilliseconds < 2000) Thread.Sleep(1);
+            Check(started.ElapsedMilliseconds < 150, $"the first one reaches the device in {started.ElapsedMilliseconds} ms");
+            Thread.Sleep(300);
+            before = SoundOut.Mixed;
+            started.Restart();
+            SoundOut.Play(new float[Sounds.WheelDrop.Length]);
+            while (SoundOut.Mixed == before && started.ElapsedMilliseconds < 2000) Thread.Sleep(1);
+            Check(started.ElapsedMilliseconds < 50, $"with the stream open, the next in {started.ElapsedMilliseconds} ms");
+            Thread.Sleep(300);
+            before = SoundOut.Mixed;
+            for (var i = 0; i < 3; i++) SoundOut.Play(new float[Sounds.WheelDrop.Length]);
+            var until = DateTime.UtcNow.AddSeconds(2);
+            while (SoundOut.Mixed - before < Sounds.WheelDrop.Length && DateTime.UtcNow < until) Thread.Sleep(10);
+            Check(SoundOut.Mixed - before >= Sounds.WheelDrop.Length, $"the device took them: {SoundOut.Mixed - before} samples");
+            Thread.Sleep(300);
+            Check(SoundOut.Mixed - before < 2 * Sounds.WheelDrop.Length, $"played over each other, not one after the other: {SoundOut.Mixed - before} samples");
+            until = DateTime.UtcNow.AddSeconds(5);
+            while (SoundOut.IsRunning && DateTime.UtcNow < until) Thread.Sleep(50);
+            Check(!SoundOut.IsRunning, "the audio stream closes when there is nothing to hear, so the PC can sleep");
         });
 
         Test("Interface", "HUD: the card sits in the corner beside the tray, wherever the taskbar is", () =>
