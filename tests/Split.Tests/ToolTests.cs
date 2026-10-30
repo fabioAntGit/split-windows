@@ -447,6 +447,15 @@ public static class ToolTests
             Check(Clipboard.GetText() == one, "one path has no line end");
         }));
 
+        Test("Actions", "Terminal: the folder is one argument, spaces, “&” and “;” included", () =>
+        {
+            var folder = @"C:\Work\Split test & co; v2";
+            var wt = Split.Windows.Terminal.Start(folder, @"C:\wt.exe");
+            Check(wt.ArgumentList.SequenceEqual(["-d", @"C:\Work\Split test & co\; v2"]), $"Windows Terminal: {string.Join(" | ", wt.ArgumentList)}");
+            var shell = Split.Windows.Terminal.Start(folder, null);
+            Check(shell.FileName == "powershell.exe" && shell.WorkingDirectory == folder && shell.ArgumentList.Count == 0, "PowerShell starts in the folder, with nothing to read");
+        });
+
         Test("Actions", "Move To…: names taken get a number, a folder can't go into itself, the same folder is refused", () =>
         {
             var root = Folder("move");
