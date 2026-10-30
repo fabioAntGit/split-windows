@@ -104,6 +104,17 @@ public static class UiTests
             }
         }));
 
+        Test("Interface", "The application icon: every size Windows asks for, and the file in the project has them", () => Ui.Run(() =>
+        {
+            var drawn = Logo.AppIcon(Logo.AppIconSizes);
+            var frames = new IconBitmapDecoder(new MemoryStream(drawn), BitmapCreateOptions.None, BitmapCacheOption.OnLoad).Frames;
+            Check(frames.Select(frame => frame.PixelWidth).SequenceEqual([16, 20, 24, 32, 40, 48, 64, 256]), "sizes 16, 20, 24, 32, 40, 48, 64 and 256");
+            Check(frames.All(frame => frame.PixelHeight == frame.PixelWidth), "square images");
+            var shipped = File.ReadAllBytes(Path.Combine(Hostile.Project, "src", "Split.App", "Split.ico"));
+            var shippedSizes = new IconBitmapDecoder(new MemoryStream(shipped), BitmapCreateOptions.None, BitmapCacheOption.OnLoad).Frames.Select(frame => frame.PixelWidth);
+            Check(shippedSizes.SequenceEqual(Logo.AppIconSizes), "Split.ico in the project has the same sizes (tools/MakeIcon draws it)");
+        }));
+
         Test("Interface", "HUD: states, texts, notes and plurals", () =>
         {
             var hud = NotificationHud.Shared;
