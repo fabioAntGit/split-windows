@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.IO.Enumeration;
 using System.Text;
 using Split;
 using Split.Windows;
@@ -72,7 +73,20 @@ static int Run(string command, string[] rest)
     }
 }
 
-static List<string> Files(IEnumerable<string> paths) => Intake.Resolve(paths);
+static List<string> Files(IEnumerable<string> paths) => Intake.Resolve(paths.SelectMany(Expand));
+
+// No Windows shell expands "*.heic" before a program sees it, so the command does, in the file name only.
+static IEnumerable<string> Expand(string path)
+{
+    var pattern = Path.GetFileName(path);
+    if (pattern.IndexOfAny(['*', '?']) < 0) return [path];
+    var folder = Path.GetFullPath(Path.GetDirectoryName(path) is { Length: > 0 } directory ? directory : ".");
+    if (!Directory.Exists(folder)) return [path];
+    // Matched by hand: the folder search alone lets "*.htm" find ".html" files too.
+    var found = Directory.EnumerateFiles(folder).Where(file => FileSystemName.MatchesSimpleExpression(pattern, Path.GetFileName(file)))
+        .Order(StringComparer.OrdinalIgnoreCase).ToList();
+    return found.Count > 0 ? found : [path];
+}
 
 static int Each(List<string> paths, Func<string, IReadOnlyList<string>> work)
 {

@@ -510,6 +510,12 @@ public static class ToolTests
             Check(failed.Status == 1 && failed.Stderr.StartsWith("✗ ") && failed.Stderr.Contains("has no sound"), $"errors are explained: {failed.Stderr}");
 
             Check(Splitapp("tool", "nonsense", "x").Status == 2 && Splitapp("tool", "compress-to", "abc", "x").Status == 2, "usage errors exit with 2");
+
+            var folder = Path.GetDirectoryName(Fixtures.Isolated("notes.txt", "cli-glob"))!;
+            File.WriteAllText(Path.Combine(folder, "more notes.txt"), "more");
+            File.WriteAllText(Path.Combine(folder, "page.html"), "<p>not a match</p>");
+            var glob = Splitapp("targets", Path.Combine(folder, "*.txt"), Path.Combine(folder, "*.htm"));
+            Check(glob.Stdout.Contains("more notes.txt:") && glob.Stdout.Contains("\nnotes.txt:") && !glob.Stdout.Contains("page.html"), $"wildcards are expanded, “*.htm” finding no .html: {glob.Stdout} {glob.Stderr}");
         });
     }
 }
