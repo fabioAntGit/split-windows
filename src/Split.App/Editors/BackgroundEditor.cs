@@ -117,7 +117,7 @@ public sealed class BackgroundEditor : EditorWindow
                 Kit.Row(Kit.Text(L("Aspect Ratio"), TextSize.Body, wrap: false), ratio)),
         };
         var built = new EditorLayout(area, sections, many ? L("Apply to %@", model.Paths.Count) : L("Save"),
-                                     () => { model.Style = new BackdropStyle(); Refresh(); }, Close, Save);
+                                     () => { model.Style = new BackdropStyle(); Refresh(); }, CloseNow, Save);
         return (area, built);
     }
 

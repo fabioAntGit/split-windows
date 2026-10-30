@@ -128,7 +128,7 @@ public sealed class AdjustEditor : EditorWindow
         if (many) sections.Add(EditorParts.Note(L("The same adjustments are applied to the %@ images (“(%@)”).", model.Paths.Count, L("adjusted"))));
 
         var built = new EditorLayout(work, sections, many ? L("Apply to %@", model.Paths.Count) : L("Save"),
-                                     () => { model.Adjustments = new Adjustments(); Refresh(); }, Close, Save);
+                                     () => { model.Adjustments = new Adjustments(); Refresh(); }, CloseNow, Save);
         built.Save.IsEnabled = !a.IsNeutral;
         return (area, built);
     }

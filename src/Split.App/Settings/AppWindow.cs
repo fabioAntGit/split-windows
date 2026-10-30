@@ -71,7 +71,7 @@ public class AppWindow : Window
         Look.Changed += look;
         Localizer.Shared.Changed += language;
         Closed += (_, _) => { Look.Changed -= look; Localizer.Shared.Changed -= language; };
-        PreviewKeyDown += (_, e) => { if (e.Key == Key.Escape && ClosesOnEscape) { Close(); e.Handled = true; } };
+        PreviewKeyDown += (_, e) => { if (e.Key == Key.Escape && ClosesOnEscape) { Dismiss(); e.Handled = true; } };
         Paint();
     }
 
@@ -83,6 +83,9 @@ public class AppWindow : Window
     }
 
     protected virtual bool ClosesOnEscape => false;
+
+    /// <summary>What Esc does when the window closes on it.</summary>
+    protected virtual void Dismiss() => Close();
 
     /// <summary>Called after the colour or the language changed: builds the contents again.</summary>
     protected virtual void Rebuild() { }

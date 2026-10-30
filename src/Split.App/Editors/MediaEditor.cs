@@ -805,7 +805,7 @@ public sealed class MediaEditor : EditorWindow
         sections.Add(EditorParts.Group(L("Format"), L("The result is saved next to the original with “(%@)”.", L("edited")),
                                        Kit.Row(Kit.Text(L("Save As"), TextSize.Body, wrap: false), saveAs)));
 
-        return new EditorLayout(work, sections, L("Export"), () => { model.Reset(); ApplyPlayback(); Refresh(); }, Close, Save);
+        return new EditorLayout(work, sections, L("Export"), () => { model.Reset(); ApplyPlayback(); Refresh(); }, CloseNow, Save);
     }
 
     private void Turn(int quarter)

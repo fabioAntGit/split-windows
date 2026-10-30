@@ -324,7 +324,7 @@ public sealed class AnnotateEditor : EditorWindow
             EditorParts.Group(L("Color and Width"), null, swatches, other, width),
             Kit.Section(L("Privacy"), Kit.Panel(privacy)),
             EditorParts.Note(L("Drag to draw. With “Select” you can move or delete marks (Delete key). Ctrl+Z undoes. The copy gets “(%@)”.", L("annotated"))),
-        ], L("Save"), () => { FinishText(); model.Commit([]); }, Close, Save);
+        ], L("Save"), () => { FinishText(); model.Commit([]); }, CloseNow, Save);
         built.Save.IsEnabled = model.Marks.Count > 0;
         if (built.Reset is not null) built.Reset.Visibility = model.Marks.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
         return (area, built);

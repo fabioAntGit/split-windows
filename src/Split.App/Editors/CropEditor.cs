@@ -196,7 +196,7 @@ public sealed class CropEditor : EditorWindow
             EditorParts.Group(L("Aspect Ratio"), null, format),
             EditorParts.Group(L("Rotate and Flip"), null, tools),
             size,
-        ], many ? L("Crop %@", model.Paths.Count) : L("Crop"), () => { model.Reset(); Refresh(); }, Close, Save);
+        ], many ? L("Crop %@", model.Paths.Count) : L("Crop"), () => { model.Reset(); Refresh(); }, CloseNow, Save);
         built.Save.IsEnabled = !model.Settings.IsIdentity;
         return (area, built);
     }

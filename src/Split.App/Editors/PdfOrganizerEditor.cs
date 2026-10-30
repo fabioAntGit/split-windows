@@ -229,7 +229,7 @@ public sealed class PdfOrganizerEditor : EditorWindow
             Kit.Section(L("Pages"), Kit.Panel(pages)),
             Kit.Section(L("Combine"), Kit.Panel(combine)),
             Kit.Section(L("Extract"), Kit.Panel(extract)),
-        ], L("Save PDF"), null, Close, () => Save(false));
+        ], L("Save PDF"), null, CloseNow, () => Save(false));
         return built;
     }
 

@@ -132,7 +132,7 @@ public sealed class CollageEditor : EditorWindow
             EditorParts.Group(L("Layout"), null, [.. shape]),
             EditorParts.Group(L("Background"), null, [.. background]),
             Kit.Section(L("Order"), Kit.Panel(order), orderNote),
-        ], L("Create Collage"), () => { model.Style = new CollageSpec(); Refresh(); }, Close, Save);
+        ], L("Create Collage"), () => { model.Style = new CollageSpec(); Refresh(); }, CloseNow, Save);
         built.Save.IsEnabled = model.Paths.Count >= 2;
         return (area, built);
     }

@@ -13,8 +13,8 @@ namespace Split.App;
 
 /// <summary>
 /// Every editor's window: the work area on the left, a grouped inspector on the right, the buttons at the
-/// bottom right (the primary action first, then Cancel). Closing with edits asks first; Ctrl+Z and Ctrl+Shift+Z
-/// undo and redo where the editor keeps a history.
+/// bottom right (the primary action first, then Cancel). Closing from the title bar with edits asks first; Cancel and
+/// Esc throw them away without asking. Ctrl+Z and Ctrl+Shift+Z undo and redo where the editor keeps a history.
 /// </summary>
 public abstract class EditorWindow : AppWindow
 {
@@ -35,6 +35,8 @@ public abstract class EditorWindow : AppWindow
     }
 
     protected override bool ClosesOnEscape => true;
+
+    protected override void Dismiss() => CloseNow();
 
     /// <summary>True when closing would lose work.</summary>
     protected abstract bool HasChanges { get; }

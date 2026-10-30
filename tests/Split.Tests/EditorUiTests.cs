@@ -157,6 +157,27 @@ public static class EditorUiTests
             finally { EditorWindow.ConfirmDiscard = previous; }
         }));
 
+        Test("Editors", "Cancel and Esc throw the edits away without asking", () => Ui.Run(() =>
+        {
+            var asked = 0;
+            var previous = EditorWindow.ConfirmDiscard;
+            EditorWindow.ConfirmDiscard = _ => { asked++; return false; };
+            try
+            {
+                using var picture = Px.Quadrants();
+                var crop = Shown(new CropEditor([Fixtures.Url("quadrants.png")], "Crop", picture));
+                crop.Model.Aspect = CropAspect.Square;
+                crop.Layout.Cancel.RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Primitives.ButtonBase.ClickEvent));
+                Check(asked == 0 && !crop.IsVisible, "Cancel closes a changed crop");
+
+                var adjust = Shown(new AdjustEditor([Fixtures.Url("quadrants.png")], "Adjust", picture));
+                adjust.Model.Adjustments = new Adjustments { Exposure = 1 };
+                adjust.Layout.RaiseEvent(new KeyEventArgs(Keyboard.PrimaryDevice, PresentationSource.FromVisual(adjust)!, 0, Key.Escape) { RoutedEvent = Keyboard.PreviewKeyDownEvent });
+                Check(asked == 0 && !adjust.IsVisible, "Esc closes changed adjustments");
+            }
+            finally { EditorWindow.ConfirmDiscard = previous; }
+        }));
+
         Test("Crop", "The pointer drags the handles, the grid shows while dragging, and the result size follows", () => Ui.Run(() =>
         {
             using var picture = Px.Quadrants();
