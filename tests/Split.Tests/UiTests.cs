@@ -287,7 +287,7 @@ public static class UiTests
             finally { ModifierChoices.Set(WheelKind.Actions.DefaultModifier(), WheelKind.Actions); }
         });
 
-        Test("Windows", "A second start hands its files to the first, which gets them together; the pipe is the user’s own", () =>
+        Test("Windows", "A second start hands its files to the first, which gets them together with its own; the pipe is the user’s own", () =>
         {
             var name = "SplitTest-" + Guid.NewGuid().ToString("N");
             using var first = new SingleInstance(name);
@@ -296,13 +296,14 @@ public static class UiTests
             var arrivals = new List<List<string>>();
             var arrived = new ManualResetEventSlim();
             first.Listen(paths => { lock (arrivals) arrivals.Add([.. paths]); arrived.Set(); });
+            first.Receive(["d.txt"]);
             Check(SingleInstance.Send(["a.txt", "b.txt"], name) && SingleInstance.Send(["b.txt", "c.txt"], name), "both starts reach the first");
             Check(arrived.Wait(3000), "the files arrive");
             Thread.Sleep(600);
             lock (arrivals)
             {
                 Check(arrivals.Count == 1, $"arrivals within 300 ms are handed over together ({arrivals.Count} batches)");
-                Check(arrivals.Count > 0 && arrivals[0].Count == 3, $"each file once: {string.Join(", ", arrivals.SelectMany(a => a).Select(Path.GetFileName))}");
+                Check(arrivals.Count > 0 && arrivals[0].Count == 4, $"each file once: {string.Join(", ", arrivals.SelectMany(a => a).Select(Path.GetFileName))}");
             }
             Check(!SingleInstance.Send(["x"], name + "-nobody"), "with no Split running, nothing answers");
         });

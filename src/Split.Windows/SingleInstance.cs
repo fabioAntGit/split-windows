@@ -60,6 +60,9 @@ public sealed class SingleInstance : IDisposable
         }
     }
 
+    /// <summary>Files that start this Split itself join those from the starts that follow, so a selection from the Explorer opens as one.</summary>
+    public void Receive(IEnumerable<string> paths) => Arrived([.. paths.Select(Path.GetFullPath)]);
+
     private void Arrived(List<string> paths)
     {
         lock (gate)
