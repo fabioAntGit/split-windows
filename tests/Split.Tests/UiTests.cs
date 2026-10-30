@@ -150,9 +150,9 @@ public static class UiTests
             Check(verbs.SequenceEqual(["1 file converted", "3 files converted"]), $"plurals: {string.Join(" / ", verbs)}");
         });
 
-        Test("Interface", "Sounds: short soft drops that start and end in silence, the wheel’s the faintest", () =>
+        Test("Interface", "Sounds: short and soft, starting and ending in silence, the wheel’s tick the faintest", () =>
         {
-            foreach (var (name, samples, longest, loudest) in new[] { ("done", Sounds.DoneDrop, 0.15, 0.4), ("error", Sounds.ErrorDrops, 0.25, 0.4), ("wheel", Sounds.WheelDrop, 0.06, 0.15) })
+            foreach (var (name, samples, longest, loudest) in new[] { ("done", Sounds.DoneDrop, 0.15, 0.4), ("error", Sounds.ErrorDrops, 0.25, 0.4), ("wheel", Sounds.WheelTick, 0.06, 0.15) })
             {
                 Check(samples.Length > 0 && samples.Length / (double)SoundOut.Rate <= longest, $"{name}: {samples.Length * 1000 / SoundOut.Rate} ms");
                 Check(samples.Max(Math.Abs) <= loudest, $"{name}: peak {samples.Max(Math.Abs):0.00}");
@@ -170,23 +170,23 @@ public static class UiTests
             if (SoundOut.Available != true) Skip("this PC has no audio output");
             var before = SoundOut.Mixed;
             var started = System.Diagnostics.Stopwatch.StartNew();
-            SoundOut.Play(new float[Sounds.WheelDrop.Length]);
+            SoundOut.Play(new float[Sounds.WheelTick.Length]);
             while (SoundOut.Mixed == before && started.ElapsedMilliseconds < 2000) Thread.Sleep(1);
             Check(started.ElapsedMilliseconds < 150, $"the first one reaches the device in {started.ElapsedMilliseconds} ms");
             Thread.Sleep(300);
             before = SoundOut.Mixed;
             started.Restart();
-            SoundOut.Play(new float[Sounds.WheelDrop.Length]);
+            SoundOut.Play(new float[Sounds.WheelTick.Length]);
             while (SoundOut.Mixed == before && started.ElapsedMilliseconds < 2000) Thread.Sleep(1);
             Check(started.ElapsedMilliseconds < 50, $"with the stream open, the next in {started.ElapsedMilliseconds} ms");
             Thread.Sleep(300);
             before = SoundOut.Mixed;
-            for (var i = 0; i < 3; i++) SoundOut.Play(new float[Sounds.WheelDrop.Length]);
+            for (var i = 0; i < 3; i++) SoundOut.Play(new float[Sounds.WheelTick.Length]);
             var until = DateTime.UtcNow.AddSeconds(2);
-            while (SoundOut.Mixed - before < Sounds.WheelDrop.Length && DateTime.UtcNow < until) Thread.Sleep(10);
-            Check(SoundOut.Mixed - before >= Sounds.WheelDrop.Length, $"the device took them: {SoundOut.Mixed - before} samples");
+            while (SoundOut.Mixed - before < Sounds.WheelTick.Length && DateTime.UtcNow < until) Thread.Sleep(10);
+            Check(SoundOut.Mixed - before >= Sounds.WheelTick.Length, $"the device took them: {SoundOut.Mixed - before} samples");
             Thread.Sleep(300);
-            Check(SoundOut.Mixed - before < 2 * Sounds.WheelDrop.Length, $"played over each other, not one after the other: {SoundOut.Mixed - before} samples");
+            Check(SoundOut.Mixed - before < 2 * Sounds.WheelTick.Length, $"played over each other, not one after the other: {SoundOut.Mixed - before} samples");
             until = DateTime.UtcNow.AddSeconds(5);
             while (SoundOut.IsRunning && DateTime.UtcNow < until) Thread.Sleep(50);
             Check(!SoundOut.IsRunning, "the audio stream closes when there is nothing to hear, so the PC can sleep");

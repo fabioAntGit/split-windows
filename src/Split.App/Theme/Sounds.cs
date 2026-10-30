@@ -2,18 +2,27 @@ using Split.Windows;
 
 namespace Split.App;
 
-/// <summary>Soft water drops drawn in code: one when a job is done, two lower ones on an error, a faint short one as the pointer moves across the wheel.</summary>
+/// <summary>Sounds drawn in code: a soft drop when a job is done, two lower ones on an error, a quiet tick as the pointer moves across the wheel.</summary>
 public static class Sounds
 {
     public static readonly float[] DoneDrop = Drop(520, 1250, 0.11, 0.35);
     public static readonly float[] ErrorDrops = [.. Drop(330, 600, 0.09, 0.32), .. Drop(260, 470, 0.12, 0.3)];
-    public static readonly float[] WheelDrop = Drop(900, 1700, 0.045, 0.12);
+    public static readonly float[] WheelTick = Tick();
 
     public static void Success() { if (Settings.PlaySounds) SoundOut.Play(DoneDrop); }
 
     public static void Failure() { if (Settings.PlaySounds) SoundOut.Play(ErrorDrops); }
 
-    public static void Hover() { if (Settings.PlayWheelSounds) SoundOut.Play(WheelDrop); }
+    public static void Hover() { if (Settings.PlayWheelSounds) SoundOut.Play(WheelTick); }
+
+    /// <summary>Two tones that die away in a few milliseconds and settle slightly lower, like a soft detent; a rising pitch would sound like a toy.</summary>
+    private static float[] Tick()
+    {
+        var body = Drop(1100, 1000, 0.03, 0.09);
+        var top = Drop(2700, 2600, 0.012, 0.03);
+        for (var i = 0; i < top.Length; i++) body[i] += top[i];
+        return body;
+    }
 
     /// <summary>A sine whose pitch rises quickly while it fades, which is what makes a drop sound like a drop.</summary>
     private static float[] Drop(double from, double to, double seconds, double volume)
