@@ -26,10 +26,17 @@ public sealed class GeneralTab : TabPage
         office.Changed += on => Settings.UseOfficeApps = on;
         var sounds = new Toggle(Settings.PlaySounds, L("Sounds when done and on errors"));
         sounds.Changed += on => Settings.PlaySounds = on;
+        var wheelSounds = new Toggle(Settings.PlayWheelSounds, L("Sound when moving over the wheel"));
+        wheelSounds.Changed += on => Settings.PlayWheelSounds = on;
         var login = new Toggle(LaunchAtLogin.IsEnabled(), L("Start with Windows"));
         login.Changed += on => SetLogin(on, login);
 
-        var generalRows = new List<UIElement> { Kit.Row(Kit.Text(L("Sounds when done and on errors")), sounds), Kit.Row(Kit.Text(L("Start with Windows")), login) };
+        var generalRows = new List<UIElement>
+        {
+            Kit.Row(Kit.Text(L("Sounds when done and on errors")), sounds),
+            Kit.Row(Kit.Text(L("Sound when moving over the wheel")), wheelSounds),
+            Kit.Row(Kit.Text(L("Start with Windows")), login),
+        };
         if (loginError is not null) generalRows.Add(Kit.Row(Kit.Text(loginError, TextSize.Subheadline, secondary: true), height: 30));
 
         var privacy = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(12) };

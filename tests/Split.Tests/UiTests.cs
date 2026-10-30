@@ -139,6 +139,18 @@ public static class UiTests
             Check(verbs.SequenceEqual(["1 file converted", "3 files converted"]), $"plurals: {string.Join(" / ", verbs)}");
         });
 
+        Test("Interface", "Sounds: short soft drops that start and end in silence, the wheel’s the faintest", () =>
+        {
+            foreach (var (name, wave, longest, loudest) in new[] { ("done", Sounds.SuccessWave, 0.15, 0.4), ("error", Sounds.FailureWave, 0.25, 0.4), ("wheel", Sounds.HoverWave, 0.06, 0.15) })
+            {
+                Check(wave.Length > 44 && System.Text.Encoding.ASCII.GetString(wave, 0, 4) == "RIFF" && System.Text.Encoding.ASCII.GetString(wave, 8, 4) == "WAVE", $"{name}: a WAV file");
+                var samples = Enumerable.Range(0, (wave.Length - 44) / 2).Select(i => BitConverter.ToInt16(wave, 44 + 2 * i) / (double)short.MaxValue).ToArray();
+                Check(samples.Length / 44100.0 <= longest, $"{name}: {samples.Length / 44.1:0} ms");
+                Check(samples.Max(Math.Abs) <= loudest, $"{name}: peak {samples.Max(Math.Abs):0.00}");
+                Check(Math.Abs(samples[0]) < 0.01 && Math.Abs(samples[^1]) < 0.01, $"{name}: no click at either end");
+            }
+        });
+
         Test("Interface", "HUD: the card sits in the corner beside the tray, wherever the taskbar is", () =>
         {
             var work = new Box(0, 0, 1920, 1040);

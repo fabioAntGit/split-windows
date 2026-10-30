@@ -190,7 +190,7 @@ public static class SettingsUiTests
 
         Test("Settings", "General: every choice is written to the settings, the language rebuilds the window", () => Ui.Run(() =>
         {
-            var before = (Settings.Quality, Settings.KeepsMetadata, Settings.UseOfficeApps, Settings.PlaySounds, Settings.Language);
+            var before = (Settings.Quality, Settings.KeepsMetadata, Settings.UseOfficeApps, Settings.PlaySounds, Settings.PlayWheelSounds, Settings.Language);
             var window = new SettingsWindow(SettingsTab.General);
             try
             {
@@ -205,6 +205,7 @@ public static class SettingsUiTests
                     ("Keep metadata (date, location, camera)", () => Settings.KeepsMetadata),
                     ("Use Word, Excel and PowerPoint when installed", () => Settings.UseOfficeApps),
                     ("Sounds when done and on errors", () => Settings.PlaySounds),
+                    ("Sound when moving over the wheel", () => Settings.PlayWheelSounds),
                 })
                 {
                     var toggle = Named<Toggle>(window.Page(SettingsTab.General), name);
@@ -230,7 +231,7 @@ public static class SettingsUiTests
             finally
             {
                 Localizer.Shared.Language = Language.En;
-                (Settings.Quality, Settings.KeepsMetadata, Settings.UseOfficeApps, Settings.PlaySounds) = (before.Quality, before.KeepsMetadata, before.UseOfficeApps, before.PlaySounds);
+                (Settings.Quality, Settings.KeepsMetadata, Settings.UseOfficeApps, Settings.PlaySounds, Settings.PlayWheelSounds) = (before.Quality, before.KeepsMetadata, before.UseOfficeApps, before.PlaySounds, before.PlayWheelSounds);
                 Settings.Language = before.Language;
                 window.Close();
             }

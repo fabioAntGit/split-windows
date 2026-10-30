@@ -160,6 +160,13 @@ public static class Settings
         set => Write("playSounds", value);
     }
 
+    /// <summary>A faint drop as the pointer moves from slice to slice on the wheel.</summary>
+    public static bool PlayWheelSounds
+    {
+        get => Read<bool?>("playWheelSounds") ?? true;
+        set => Write("playWheelSounds", value);
+    }
+
     /// <summary>Word, Excel and PowerPoint keep Office layouts intact when exporting to PDF.</summary>
     public static bool UseOfficeApps
     {

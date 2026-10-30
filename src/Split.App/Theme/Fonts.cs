@@ -22,11 +22,3 @@ public static class Fonts
         Foreground = Palette.Brush(color ?? Palette.Primary),
     };
 }
-
-public static class Sounds
-{
-    /// <summary>The system's own sounds, so they follow the user's sound scheme; off when "Play sounds" is.</summary>
-    public static void Success() { if (Settings.PlaySounds) System.Media.SystemSounds.Asterisk.Play(); }
-
-    public static void Failure() { if (Settings.PlaySounds) System.Media.SystemSounds.Hand.Play(); }
-}

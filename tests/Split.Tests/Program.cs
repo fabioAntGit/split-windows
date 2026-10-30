@@ -30,6 +30,7 @@ Imaging.Initialize();
 Settings.UseOfficeApps = false;
 Settings.KeepsMetadata = true;
 Settings.PlaySounds = false;
+Settings.PlayWheelSounds = false;
 Hud.Current = new HeadlessHud();
 if (Localizer.Shared.Language != Language.En) Localizer.Shared.Language = Language.En;
 

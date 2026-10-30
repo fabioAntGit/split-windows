@@ -125,6 +125,7 @@ public sealed class WheelView : FrameworkElement
         {
             if (highlighted == value) return;
             highlighted = value;
+            if (forWindow && value is not null) Sounds.Hover();
             for (var i = 0; i < pops.Length; i++) pops[i].Target = i == highlighted ? 1 : 0;
             StartAnimating();
             ArmSpring();
@@ -140,6 +141,7 @@ public sealed class WheelView : FrameworkElement
         {
             if (hubHighlighted == value) return;
             hubHighlighted = value;
+            if (forWindow && value) Sounds.Hover();
             ArmSpring();
             Redraw();
         }
