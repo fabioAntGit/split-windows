@@ -350,8 +350,8 @@ public static class DragStart
             down = null;
             var list = paths();
             if (list.Count == 0) return;
-            // Copy only: the originals stay where they are, wherever the files are dropped.
-            DragDrop.DoDragDrop(element, new DataObject(DataFormats.FileDrop, list.ToArray()), DragDropEffects.Copy);
+            // The drop decides, as a drag from File Explorer does: a move on the same drive, a copy elsewhere, Shift or Ctrl to choose.
+            DragDrop.DoDragDrop(element, new DataObject(DataFormats.FileDrop, list.ToArray()), DragDropEffects.Copy | DragDropEffects.Move | DragDropEffects.Link);
         };
     }
 }
