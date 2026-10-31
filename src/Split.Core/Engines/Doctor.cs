@@ -49,7 +49,7 @@ public static class CommandLineTool
         {
             var folder = "'" + Folder.Replace("'", "''") + "'";
             return $"$d = {folder}; $p = [Environment]::GetEnvironmentVariable('Path', 'User'); " +
-                   "if (($p -split ';') -notcontains $d) { [Environment]::SetEnvironmentVariable('Path', ($p.TrimEnd(';') + ';' + $d).TrimStart(';'), 'User') }";
+                   "if (($p -split ';') -notcontains $d) { [Environment]::SetEnvironmentVariable('Path', (\"$p\".TrimEnd(';') + ';' + $d).TrimStart(';'), 'User') }";
         }
     }
 }
