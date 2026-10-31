@@ -19,6 +19,30 @@ public static class WheelTests
 
     public static void Register()
     {
+        Test("Wheels", "Options are short, unique and explained", () =>
+        {
+            string[] samples = ["quadrants.jpg", "quadrants.png", "animated.gif", "drawing.svg", "clip.mp4", "tone.mp3", "report.pdf", "letter.docx",
+                                "sales.xlsx", "prices.csv", "folder.zip", "notes.txt", "page.html", "book.epub", "subs.srt", "data.json"];
+            foreach (var sample in samples)
+            {
+                string[] paths = [Fixtures.Url(sample)];
+                foreach (var kind in WheelKinds.All)
+                {
+                    var items = WheelCatalog.Offered(kind, paths);
+                    var limit = items.All(i => i.Title.Length <= 7) ? 16 : 14;
+                    Check(items.Count <= limit, $"{sample}, {kind} wheel: {items.Count} options are too many to read at a glance");
+                    Check(items.Select(i => i.Title).Distinct().Count() == items.Count, $"{sample}, {kind} wheel: repeated titles");
+                    foreach (var item in items)
+                    {
+                        Check(item.Title.Length is > 0 and <= 22, $"{sample}, {kind} wheel: the title “{item.Title}” is empty or too long");
+                        Check(!string.IsNullOrEmpty(item.Detail), $"{sample}, {kind} wheel: “{item.Title}” has no explanation");
+                    }
+                }
+            }
+            foreach (var kind in WheelKinds.All)
+                Check(kind.Title().Length > 0 && kind.Summary().Length > 0 && kind.ChoosePrompt().Length > 0, $"{kind}: title, summary and prompt");
+        });
+
         Test("Wheels", "An arrangement moves and hides slices; one never placed sits after its neighbour", () =>
         {
             static List<string> Sort(WheelArrangement arrangement, params string[] items) => arrangement.Sorted(items, id => id);
