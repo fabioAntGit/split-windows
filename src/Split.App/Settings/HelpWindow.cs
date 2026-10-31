@@ -9,7 +9,7 @@ namespace Split.App;
 /// <summary>How to Use Split: three steps, with the keys that are set in Settings drawn as keys.</summary>
 public sealed class HelpWindow : AppWindow
 {
-    public HelpWindow() : base(L("How to Use"), new Size(540, 0), canMinimize: false, sizeToHeight: true)
+    public HelpWindow() : base(L("How to Use"), new Size(540, 0), sizeToHeight: true)
     {
         Rebuild();
         PreviewKeyDown += (_, e) => { if (e.Key == Key.Enter) { Close(); e.Handled = true; } };
@@ -120,7 +120,7 @@ public sealed class HelpWindow : AppWindow
 /// <summary>About Split: the mark, the name, the version and a line on what the app is. Nothing to open on the Internet.</summary>
 public sealed class AboutWindow : AppWindow
 {
-    public AboutWindow() : base(L("About Split"), new Size(340, 0), canMinimize: false, sizeToHeight: true) => Rebuild();
+    public AboutWindow() : base(L("About Split"), new Size(340, 0), sizeToHeight: true) => Rebuild();
 
     protected override bool ClosesOnEscape => true;
 

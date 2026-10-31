@@ -282,7 +282,7 @@ public static class SettingsUiTests
         Test("Help", "How to Use: three steps, the keys as key caps, the Windows note, Get Started closes", () => Ui.Run(() =>
         {
             var help = new HelpWindow();
-            Check(help.Title == "How to Use" && help.Width == 540 && help.ResizeMode == ResizeMode.NoResize, "540 wide, fixed");
+            Check(help.Title == "How to Use" && help.Width == 540 && help.ResizeMode == ResizeMode.CanMinimize, "540 wide, fixed, can be minimised");
             var texts = Texts(help);
             foreach (var expected in new[]
             {
@@ -316,7 +316,7 @@ public static class SettingsUiTests
             Check(texts.Contains("Split") && texts.Contains($"Version {AboutWindow.Version}") && AboutWindow.Version.Length > 0 && !AboutWindow.Version.Contains('+'), $"{string.Join(" | ", texts)}");
             Check(texts.Contains("A local file converter and editor. Everything happens on this PC, without the Internet."), "what the app is");
             Check(!Walk(about).OfType<System.Windows.Documents.Hyperlink>().Any() && !texts.Any(t => t.Contains("http", StringComparison.OrdinalIgnoreCase)), "no links");
-            Check(about.Title == "About Split" && about.ResizeMode == ResizeMode.NoResize, "a small fixed window");
+            Check(about.Title == "About Split" && about.ResizeMode == ResizeMode.CanMinimize, "a small fixed window that can be minimised");
             about.Close();
         }));
 
