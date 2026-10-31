@@ -28,7 +28,7 @@ public static class LanguageTests
                 var table = Localizer.LoadTable(language);
                 var missing = keys.Where(key => !table.ContainsKey(key)).Order(StringComparer.Ordinal).ToList();
                 Check(missing.Count == 0, $"{language.Raw()}: {missing.Count} untranslated: {string.Join(" | ", missing.Take(8))}");
-                var unused = shared.Keys.Concat(windows.Keys).Where(key => !keys.Contains(key) && !SharedOnlyTexts.All.Contains(key)).Distinct().Order(StringComparer.Ordinal).ToList();
+                var unused = shared.Keys.Concat(windows.Keys).Where(key => !keys.Contains(key)).Distinct().Order(StringComparer.Ordinal).ToList();
                 Check(unused.Count == 0, $"{language.Raw()}: {unused.Count} translations nothing uses: {string.Join(" | ", unused.Take(8))}");
                 foreach (var (key, value) in shared.Concat(windows))
                     Check(SourceKeys.Placeholders(key) == SourceKeys.Placeholders(value), $"{language.Raw()}: table entry “{key}” has {SourceKeys.Placeholders(key)} placeholders, “{value}” has {SourceKeys.Placeholders(value)}");
