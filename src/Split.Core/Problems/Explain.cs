@@ -52,6 +52,12 @@ public static class Explain
             return new Problem(Say(n => L("The path to “%@” is too long for Windows.", n), L("The path is too long for Windows.")),
                                L("Move the file closer to the root of the drive, or shorten the folder and file names."), technical);
         }
+        // The readers of .NET say a file is damaged by the type of the error, not by a code.
+        if (error is EndOfStreamException or InvalidDataException || win32 == 38)
+            return new Problem(L("Couldn’t finish: %@", L("the file is damaged, incomplete or not the type its extension says")),
+                               L("Open it in its usual app to check it. If it came from the Internet, download it again."), technical);
+        if (error is OutOfMemoryException)
+            return new Problem(L("Couldn’t finish: %@", L("the PC ran out of memory")), L("Close other apps or process fewer files at a time."), technical);
         return new Problem(L("Couldn’t finish: %@", error.Message), technical: technical);
     }
 

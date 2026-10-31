@@ -116,6 +116,8 @@ public static class ErrorTests
             Check(Explain.Error(new IOException("protected", Hr(0x80070013)), file).Message.Contains("read-only"), "write protected");
             Check(Explain.Error(new IOException("name", Hr(0x8007007B)), file).Message.Contains("doesn’t accept the name"), "invalid name");
             Check(Explain.Error(new PathTooLongException(), file).Message.Contains("too long"), "path too long");
+            Check(Explain.Error(new EndOfStreamException(), file).Message.Contains("damaged") && Explain.Error(new InvalidDataException("bad"), file).Message.Contains("damaged"), "a damaged file");
+            Check(Explain.Error(new OutOfMemoryException()).Message.Contains("ran out of memory"), "out of memory");
             var generic = Explain.Error(new InvalidOperationException("X failed"));
             Check(generic.Message.Contains("X failed") && generic.Technical?.Contains("InvalidOperationException") == true, "a generic error keeps its detail");
             Check(Explain.Error(Problem.Cancelled).IsCancellation, "a cancellation stays one");
