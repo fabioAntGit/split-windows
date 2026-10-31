@@ -275,8 +275,8 @@ public sealed class ActivityTab : TabPage
         var symbol = entry.State switch
         {
             ActivityState.Succeeded => "checkmark.circle.fill",
-            ActivityState.Partial => "exclamationmark.triangle",
-            ActivityState.Failed => "xmark.octagon",
+            ActivityState.Partial => "exclamationmark.triangle.fill",
+            ActivityState.Failed => "xmark.octagon.fill",
             _ => "stop.circle",
         };
         var icon = Icons.Block(symbol, 16, entry.State == ActivityState.Succeeded ? Palette.Accent : Palette.Secondary);
