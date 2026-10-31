@@ -3,7 +3,6 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using Ellipse = System.Windows.Shapes.Ellipse;
-using ShapePath = System.Windows.Shapes.Path;
 
 namespace Split.App;
 
@@ -45,6 +44,7 @@ public sealed class HudCard : Border
     private readonly Border card = new();
     private readonly Grid content = new();
     private readonly Button close;
+    private ProgressRing? ring;
 
     public HudCard(HudModel model, HudActions actions)
     {
@@ -210,14 +210,20 @@ public sealed class HudCard : Border
     }
 
     /// <summary>A progress ring while working; a symbol for the outcome.</summary>
-    private static FrameworkElement StatusGlyph(HudState state, double? fraction)
+    private FrameworkElement StatusGlyph(HudState state, double? fraction)
     {
         var grid = new Grid { Width = 30, Height = 30 };
+        var shown = ring?.Fraction;
+        ring = null;
         switch (state)
         {
             case HudState.Progress when fraction is { } value:
                 grid.Children.Add(new Ellipse { Stroke = Palette.Brush(Palette.With(Palette.Primary, 0.12)), StrokeThickness = 3, Margin = new Thickness(1.5) });
-                grid.Children.Add(Arc(Math.Max(0.02, Math.Min(1, value))));
+                var share = Math.Max(0.02, Math.Min(1, value));
+                ring = new ProgressRing { Fraction = share };
+                // The ring glides to each new share from wherever it is drawn now.
+                if (shown is { } from && from != share) ring.BeginAnimation(ProgressRing.FractionProperty, new DoubleAnimation(from, share, TimeSpan.FromSeconds(0.25)));
+                grid.Children.Add(ring);
                 var percent = Fonts.Text($"{(int)(value * 100)}", 9, FontWeights.SemiBold, Palette.Secondary);
                 percent.SetValue(System.Windows.Documents.Typography.NumeralAlignmentProperty, FontNumeralAlignment.Tabular);
                 percent.HorizontalAlignment = HorizontalAlignment.Center;
@@ -252,12 +258,33 @@ public sealed class HudCard : Border
         return symbol;
     }
 
-    /// <summary>The finished share of the ring, from twelve o'clock clockwise, with round ends.</summary>
-    private static ShapePath Arc(double fraction)
+    /// <summary>Work of unknown length: a quarter of the ring turning.</summary>
+    private static UIElement Spinner()
+    {
+        var arc = new ProgressRing { Fraction = 0.25 };
+        var turn = new RotateTransform(0, 15, 15);
+        arc.RenderTransform = turn;
+        if (!Motion.ReduceMotion) turn.BeginAnimation(RotateTransform.AngleProperty, new DoubleAnimation(0, 360, TimeSpan.FromSeconds(1)) { RepeatBehavior = RepeatBehavior.Forever });
+        return arc;
+    }
+}
+
+/// <summary>The finished share of the ring, from twelve o'clock clockwise, with round ends.</summary>
+public sealed class ProgressRing : FrameworkElement
+{
+    public static readonly DependencyProperty FractionProperty = DependencyProperty.Register(
+        nameof(Fraction), typeof(double), typeof(ProgressRing), new FrameworkPropertyMetadata(0.0, FrameworkPropertyMetadataOptions.AffectsRender));
+
+    public double Fraction
+    {
+        get => (double)GetValue(FractionProperty);
+        set => SetValue(FractionProperty, value);
+    }
+
+    protected override void OnRender(DrawingContext drawing)
     {
         const double radius = 13.5, centre = 15;
-        var end = fraction >= 0.9999 ? 0.9999 : fraction;
-        var angle = end * 2 * Math.PI;
+        var angle = Math.Min(Fraction, 0.9999) * 2 * Math.PI;
         var geometry = new StreamGeometry();
         using (var context = geometry.Open())
         {
@@ -265,25 +292,6 @@ public sealed class HudCard : Border
             context.ArcTo(new Point(centre + radius * Math.Sin(angle), centre - radius * Math.Cos(angle)), new Size(radius, radius), 0, angle > Math.PI,
                           SweepDirection.Clockwise, true, false);
         }
-        geometry.Freeze();
-        return new ShapePath
-        {
-            Data = geometry,
-            Stroke = Palette.Brush(Palette.Accent),
-            StrokeThickness = 3,
-            StrokeStartLineCap = PenLineCap.Round,
-            StrokeEndLineCap = PenLineCap.Round,
-        };
-    }
-
-    /// <summary>Work of unknown length: a quarter of the ring turning.</summary>
-    private static UIElement Spinner()
-    {
-        var arc = Arc(0.25);
-        arc.Margin = new Thickness(0);
-        var turn = new RotateTransform(0, 15, 15);
-        arc.RenderTransform = turn;
-        if (!Motion.ReduceMotion) turn.BeginAnimation(RotateTransform.AngleProperty, new DoubleAnimation(0, 360, TimeSpan.FromSeconds(1)) { RepeatBehavior = RepeatBehavior.Forever });
-        return arc;
+        drawing.DrawGeometry(null, new Pen(Palette.Brush(Palette.Accent), 3) { StartLineCap = PenLineCap.Round, EndLineCap = PenLineCap.Round }, geometry);
     }
 }

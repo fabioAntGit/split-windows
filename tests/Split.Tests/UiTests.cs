@@ -224,6 +224,24 @@ public static class UiTests
             Check(card.DesiredSize.Width == 360, $"the card is 344 wide inside its margin: {card.DesiredSize.Width}");
         }));
 
+        Test("Interface", "HUD: the progress ring glides to each new share", () => Ui.Run(() =>
+        {
+            ProgressRing Ring(DependencyObject node) => node as ProgressRing ?? LogicalTreeHelper.GetChildren(node).OfType<DependencyObject>().Select(Ring).FirstOrDefault(found => found != null)!;
+            var model = new HudModel { State = HudState.Progress, Title = "t", Detail = "d", Fraction = 0.2 };
+            var card = new HudCard(model, Ui.NoActions);
+            Check(Ring(card) is { HasAnimatedProperties: false, Fraction: 0.2 }, "the first share is drawn at once");
+            model.Fraction = 0.6;
+            model.Notify();
+            var ring = Ring(card);
+            Check(ring.HasAnimatedProperties && (double)ring.GetAnimationBaseValue(ProgressRing.FractionProperty) == 0.6, "a new share is reached by an animation");
+            model.State = HudState.Success;
+            model.Notify();
+            model.State = HudState.Progress;
+            model.Fraction = 0.1;
+            model.Notify();
+            Check(Ring(card) is { HasAnimatedProperties: false, Fraction: 0.1 }, "the next job's ring starts at its own share");
+        }));
+
         Test("Interface", "HUD: the buttons fit the card, and Open gives way first", () => Ui.Run(() =>
         {
             var model = new HudModel { State = HudState.Success, Title = "t", Detail = "d", Outputs = ["a.png"], UndoJob = Guid.NewGuid() };
