@@ -106,7 +106,8 @@ public static class Tools
             }
             using var frames = ImageConverter.Open(path, format);
             var image = frames.Images[frames.IsIcon ? frames.Largest : 0];
-            if (Math.Max(image.Width, image.Height) > 2560) image.Resize(new MagickGeometry(2560, 2560));
+            // A WebP is only recompressed, at its own size.
+            if (format != Format.Webp && Math.Max(image.Width, image.Height) > 2560) image.Resize(new MagickGeometry(2560, 2560));
             ImageConverter.WriteSingle(image, path, output, target, format, faithful: true, Quality.Compact);
         }
         catch
