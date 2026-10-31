@@ -516,6 +516,15 @@ public static class ToolTests
             File.WriteAllText(Path.Combine(folder, "page.html"), "<p>not a match</p>");
             var glob = Splitapp("targets", Path.Combine(folder, "*.txt"), Path.Combine(folder, "*.htm"));
             Check(glob.Stdout.Contains("more notes.txt:") && glob.Stdout.Contains("\nnotes.txt:") && !glob.Stdout.Contains("page.html"), $"wildcards are expanded, “*.htm” finding no .html: {glob.Stdout} {glob.Stderr}");
+
+            var language = Environment.GetEnvironmentVariable("SPLIT_LANGUAGE");
+            Environment.SetEnvironmentVariable("SPLIT_LANGUAGE", "pt");
+            try
+            {
+                var help = Splitapp("help");
+                Check(help.Stdout.Contains("conversor local de ficheiros") && help.Stderr.Length == 0, $"it starts in another language: {help.Stdout} {help.Stderr}");
+            }
+            finally { Environment.SetEnvironmentVariable("SPLIT_LANGUAGE", language); }
         });
     }
 }

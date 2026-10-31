@@ -9,10 +9,11 @@ namespace Split;
 /// </summary>
 public sealed class Localizer
 {
-    public static Localizer Shared { get; } = new();
-
     /// <summary>Where the <c>.lproj</c> folders are: next to the program, or set by the test runner.</summary>
+    // Before Shared, whose constructor already reads the tables: static fields start in the order they are written.
     public static string TablesDirectory { get; set; } = Path.Combine(AppContext.BaseDirectory, "Localization");
+
+    public static Localizer Shared { get; } = new();
 
     public event Action? Changed;
 
