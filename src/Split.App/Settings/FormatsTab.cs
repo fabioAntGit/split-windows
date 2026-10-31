@@ -12,6 +12,7 @@ namespace Split.App;
 public sealed class FormatsTab : TabPage
 {
     private Format? chosen = Format.Jpg;
+    private Format? refocus;
     private string query = "";
     private StackPanel list = new();
     private Border detail = new();
@@ -99,7 +100,24 @@ public sealed class FormatsTab : TabPage
         };
         System.Windows.Automation.AutomationProperties.SetName(row, format.Label());
         row.MouseLeftButtonUp += (_, _) => { chosen = format; FillList(); FillDetail(); };
-        row.KeyDown += (_, e) => { if (e.Key is Key.Space or Key.Enter) { chosen = format; FillList(); FillDetail(); } };
+        row.KeyDown += (_, e) =>
+        {
+            if (e.Key is Key.Space or Key.Enter) { chosen = format; refocus = format; FillList(); FillDetail(); }
+            else if (e.Key is Key.Up or Key.Down)
+            {
+                var rows = list.Children.OfType<Border>().Where(b => b.Tag is Format).ToList();
+                var next = rows.IndexOf(row) + (e.Key == Key.Up ? -1 : 1);
+                if (next >= 0 && next < rows.Count) { chosen = (Format)rows[next].Tag; refocus = chosen; FillList(); FillDetail(); }
+            }
+            else return;
+            e.Handled = true;
+        };
+        // The list is rebuilt when a format is chosen, so the row that had the focus takes it back.
+        if (refocus == format)
+        {
+            refocus = null;
+            row.Loaded += (_, _) => { row.Focus(); row.BringIntoView(); };
+        }
         return row;
     }
 

@@ -41,6 +41,8 @@ public sealed class WheelsTab : TabPage
     private Image picture = new();
     private Point? pressedAt;
     private Point? rowPressed;
+    private string? anchor;
+    private string? refocus;
 
     // What the tests and the window read.
     public WheelKind Wheel => wheel;
@@ -268,6 +270,19 @@ public sealed class WheelsTab : TabPage
             Background = selection.Contains(id) ? Palette.Brush(Palette.With(Palette.Primary, 0.16)) : Brushes.Transparent,
         };
         System.Windows.Automation.AutomationProperties.SetName(row, title);
+        System.Windows.Automation.AutomationProperties.SetHelpText(row, $"{L("Move Up")}: Alt+Up, {L("Move Down")}: Alt+Down" + (open is null ? "" : $", {L("Open Group")}: Enter"));
+        // The rows are rebuilt after each change, so the row that had the focus takes it back.
+        if (refocus == id)
+        {
+            refocus = null;
+            row.Loaded += (_, _) => { row.Focus(); row.BringIntoView(); };
+        }
+        row.KeyDown += (_, e) =>
+        {
+            if (e.OriginalSource != row) return;
+            if (e.Key is Key.Apps) { PopupMenu.Show(row, MenuFor(id, group is not null)); e.Handled = true; return; }
+            e.Handled = KeyRow(id, e.Key == Key.System ? e.SystemKey : e.Key, Keyboard.Modifiers);
+        };
         row.MouseLeftButtonDown += (_, e) => rowPressed = e.GetPosition(row);
         row.MouseMove += (_, e) =>
         {
@@ -287,20 +302,68 @@ public sealed class WheelsTab : TabPage
         return row;
     }
 
-    /// <summary>A click selects the row; Ctrl-click adds it to, or takes it out of, the selection.</summary>
+    /// <summary>A click selects the row; Ctrl-click adds it to, or takes it out of, the selection; Shift-click selects from the last row clicked.</summary>
     public void ClickRow(string id)
     {
-        if (Keyboard.Modifiers.HasFlag(ModifierKeys.Control)) { if (!selection.Remove(id)) selection.Add(id); }
-        else { selection.Clear(); selection.Add(id); }
+        Choose(id, Keyboard.Modifiers.HasFlag(ModifierKeys.Control), Keyboard.Modifiers.HasFlag(ModifierKeys.Shift));
         Redo();
     }
 
-    /// <summary>The same, for code that clicks with the Ctrl key held (the tests).</summary>
-    public void ClickRow(string id, bool control)
+    /// <summary>The same, for code that clicks with the Ctrl or Shift key held (the tests).</summary>
+    public void ClickRow(string id, bool control, bool shift = false)
     {
-        if (control) { if (!selection.Remove(id)) selection.Add(id); }
-        else { selection.Clear(); selection.Add(id); }
+        Choose(id, control, shift);
         Rebuild();
+    }
+
+    private void Choose(string id, bool control, bool shift)
+    {
+        var ids = VisibleIds;
+        if (shift && ids.IndexOf(anchor ?? id) is var from and >= 0 && ids.IndexOf(id) is var to and >= 0)
+        {
+            selection.Clear();
+            foreach (var between in ids.Skip(Math.Min(from, to)).Take(Math.Abs(to - from) + 1)) selection.Add(between);
+        }
+        else
+        {
+            if (control) { if (!selection.Remove(id)) selection.Add(id); }
+            else { selection.Clear(); selection.Add(id); }
+            anchor = id;
+        }
+        refocus = id;
+    }
+
+    /// <summary>What the list shows, top to bottom.</summary>
+    private List<string> VisibleIds => OpenGroupEntry?.Members?.ToList() ?? draft.Entries.Select(e => e.Id).ToList();
+
+    /// <summary>
+    /// The keys of a row: Up and Down move the selection (Shift extends it), Alt with them moves the slice, Enter opens a group.
+    /// Returns whether the key was used.
+    /// </summary>
+    public bool KeyRow(string id, Key key, ModifierKeys modifiers)
+    {
+        var ids = VisibleIds;
+        var at = ids.IndexOf(id);
+        if (at < 0) return false;
+        var shift = modifiers.HasFlag(ModifierKeys.Shift);
+        switch (key)
+        {
+            case Key.Up or Key.Down when modifiers.HasFlag(ModifierKeys.Alt):
+                MoveRow(id, key == Key.Up ? DraftMove.Up : DraftMove.Down);
+                return true;
+            case Key.Up or Key.Down:
+                var next = at + (key == Key.Up ? -1 : 1);
+                if (next < 0 || next >= ids.Count) return true;
+                anchor ??= id;
+                Choose(ids[next], false, shift);
+                Redo();
+                return true;
+            case Key.Enter when draft.Entry(id) is { IsGroup: true } && OpenGroupEntry is null:
+                OpenGroup(id);
+                return true;
+            default:
+                return false;
+        }
     }
 
     private List<PopupItem> MenuFor(string id, bool inGroup)
@@ -752,6 +815,7 @@ public sealed class WheelsTab : TabPage
         draft.Move(id, move);
         selection.Clear();
         selection.Add(id);
+        anchor = refocus = id;
         Save();
         Redo();
     }

@@ -34,6 +34,16 @@ public static class SettingsUiTests
     private static void Up(UIElement element) =>
         element.RaiseEvent(new MouseButtonEventArgs(Mouse.PrimaryDevice, Environment.TickCount, MouseButton.Left) { RoutedEvent = UIElement.MouseLeftButtonUpEvent, Source = element });
 
+    private static System.Windows.Interop.HwndSource? keySource;
+
+    /// <summary>Raises a key press on an element, as the keyboard would.</summary>
+    private static void PressKey(UIElement? element, Key key)
+    {
+        keySource ??= new System.Windows.Interop.HwndSource(new System.Windows.Interop.HwndSourceParameters());
+        if (element is null) InputManager.Current.ProcessInput(new KeyEventArgs(Keyboard.PrimaryDevice, keySource, 0, key) { RoutedEvent = Keyboard.PreviewKeyDownEvent });
+        else element.RaiseEvent(new KeyEventArgs(Keyboard.PrimaryDevice, keySource, 0, key) { RoutedEvent = Keyboard.KeyDownEvent, Source = element });
+    }
+
     private static void Press(Button button) => ((IInvokeProvider)new ButtonAutomationPeer(button).GetPattern(PatternInterface.Invoke)!).Invoke();
 
     private static Button ButtonLabelled(DependencyObject root, string label) =>
@@ -448,6 +458,106 @@ public static class SettingsUiTests
                 Check(!tab.DropRow(all[2], new Point(2, 2)), "a row dropped outside the ring goes nowhere");
             }
             finally { Settings.SetWheelArrangement(new WheelArrangement(), "actions"); }
+        }));
+
+        Test("Settings", "Wheels list by keyboard: Up and Down select, Shift extends, Alt moves, Enter opens a group; Shift-click selects a range", () => Ui.Run(() =>
+        {
+            var tab = new WheelsTab();
+            tab.Rebuild();
+            try
+            {
+                tab.SelectWheel(WheelKind.Actions);
+                Pump();
+                var all = tab.ShownIds.ToList();
+                Border Row(string id) => Walk(tab).OfType<Border>().First(b => b.Tag as string == id);
+                tab.ClickRow(all[0], control: false);
+                PressKey(Row(all[0]), Key.Down);
+                Pump();
+                Check(tab.Selection.SequenceEqual([all[1]]), "Down moves the selection to the next row");
+                PressKey(Row(all[1]), Key.Down);
+                PressKey(Row(all[2]), Key.Up);
+                Pump();
+                Check(tab.Selection.SequenceEqual([all[1]]), "and Up back");
+                tab.ClickRow(all[0], control: false);
+                tab.ClickRow(all[3], control: false, shift: true);
+                Check(tab.Selection.SetEquals(all.Take(4)), "Shift-click selects the range");
+                tab.ClickRow(all[2], control: false);
+                Check(tab.KeyRow(all[2], Key.Down, ModifierKeys.Shift), "Shift+Down is used");
+                Pump();
+                Check(tab.Selection.SetEquals([all[2], all[3]]), "Shift+Down extends the selection");
+                Check(tab.KeyRow(all[3], Key.Up, ModifierKeys.Alt), "Alt+Up is used");
+                Pump();
+                Check(tab.ShownIds[2] == all[3], "Alt+Up moves the slice up");
+                var help = AutomationProperties.GetHelpText(Row(all[0]));
+                Check(help.Contains("Move Up") && help.Contains("Alt+Up") && help.Contains("Alt+Down"), $"the row names its keys: {help}");
+                tab.MakeGroup([all[0], all[1]]);
+                Pump();
+                var group = tab.OpenGroupId!;
+                tab.CloseGroup();
+                Pump();
+                PressKey(Row(group), Key.Enter);
+                Pump();
+                Check(tab.OpenGroupId == group, "Enter opens a group");
+            }
+            finally { Settings.SetWheelArrangement(new WheelArrangement(), "actions"); }
+        }));
+
+        Test("Settings", "Formats list by keyboard: Up and Down move between rows", () => Ui.Run(() =>
+        {
+            var tab = new FormatsTab();
+            tab.Rebuild();
+            IEnumerable<Border> Rows() => Walk(tab).OfType<Border>().Where(b => b.Tag is Format);
+            var formats = Rows().Select(b => (Format)b.Tag).ToList();
+            var at = formats.IndexOf(Format.Jpg);
+            PressKey(Rows().ElementAt(at), Key.Down);
+            Check(tab.Chosen == formats[at + 1], "Down chooses the next format");
+            PressKey(Rows().ElementAt(at + 1), Key.Up);
+            Check(tab.Chosen == Format.Jpg, "Up chooses the one before");
+            PressKey(Rows().First(), Key.Up);
+            PressKey(Rows().First(), Key.Up);
+            Check(tab.Chosen == Format.Jpg, "Up on the first row stays put");
+        }));
+
+        Test("Settings", "Popup menus by keyboard: Up, Down, Home, End skip separators and disabled lines, Enter chooses, Esc closes; lines are menu items", () => Ui.Run(() =>
+        {
+            var picked = "";
+            var closed = false;
+            var menu = PopupMenu.Build([new("One", () => picked = "One"), new(null), new("Two", () => picked = "Two", Enabled: false), new("Three", () => picked = "Three"), new("Four", () => picked = "Four")], () => closed = true);
+            var window = new Window { Content = menu, Width = 200, Height = 200 };
+            string Lit() => string.Join(",", Walk(menu).OfType<Border>().Where(b => b.Tag is null && b != menu && AutomationProperties.GetName(b).Length > 0 && b.Background is SolidColorBrush { Color.A: > 0 }).Select(b => AutomationProperties.GetName(b)));
+            try
+            {
+                // A key press makes the keyboard the last device.
+                PressKey(null, Key.Down);
+                window.Show();
+                Pump();
+                Check(Lit() == "One", $"opened from the keyboard, the first line is lit: {Lit()}");
+                PressKey(menu, Key.Down);
+                Check(Lit() == "Three", $"Down skips the separator and the disabled line: {Lit()}");
+                PressKey(menu, Key.Down);
+                PressKey(menu, Key.Down);
+                Check(Lit() == "One", $"and wraps: {Lit()}");
+                PressKey(menu, Key.Up);
+                Check(Lit() == "Four", $"Up wraps back: {Lit()}");
+                PressKey(menu, Key.Home);
+                Check(Lit() == "One", "Home");
+                PressKey(menu, Key.End);
+                Check(Lit() == "Four", "End");
+                PressKey(menu, Key.Escape);
+                Check(closed && picked == "", "Esc closes and chooses nothing");
+                closed = false;
+                PressKey(menu, Key.Enter);
+                Check(closed && picked == "Four", "Enter chooses the lit line and closes");
+                picked = "";
+                PressKey(menu, Key.Home);
+                PressKey(menu, Key.Space);
+                Check(picked == "One", "Space chooses too");
+                var item = Walk(menu).OfType<Border>().First(b => AutomationProperties.GetName(b) == "Three");
+                var peer = UIElementAutomationPeer.CreatePeerForElement(item);
+                Check(peer.GetAutomationControlType() == AutomationControlType.MenuItem && peer.GetName() == "Three", "a line is a menu item with its name");
+                Check(UIElementAutomationPeer.CreatePeerForElement(menu).GetAutomationControlType() == AutomationControlType.Menu, "and the list is a menu");
+            }
+            finally { window.Close(); }
         }));
 
         Test("Settings", "Look and size: the colour redraws open windows at once; the size and names are saved for the next wheel", () => Ui.Run(() =>
