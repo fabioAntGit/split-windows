@@ -314,7 +314,7 @@ public sealed class WheelView : FrameworkElement
         if (settled && entryFade is null && levelFade is null && !leaving) StopAnimating();
     }
 
-    private static double FadeTime => Motion.ReduceMotion ? 0.15 : 0.18;
+    private static double FadeTime => Motion.ReduceMotion ? 0.12 : 0.18;
 
     /// <summary>The wheel grows out of the cursor, so it's clear where it came from.</summary>
     public void AnimateIn(Point anchor)
@@ -332,7 +332,7 @@ public sealed class WheelView : FrameworkElement
     private void AnimateLevelChange()
     {
         if (!IsLive) return;
-        levelFade = new Fade(Motion.ReduceMotion ? 0.15 : 0.16, 0, 1);
+        levelFade = new Fade(0.16, 0, 1);
         levelScale.Value = Motion.ReduceMotion ? 1 : 0.92;
         levelScale.Velocity = 0;
         StartAnimating();
@@ -345,7 +345,7 @@ public sealed class WheelView : FrameworkElement
             completion();
             return;
         }
-        exitFade = new Fade(Motion.ReduceMotion ? 0.15 : 0.16, 1, 0, easeIn: true);
+        exitFade = new Fade(0.16, 1, 0, easeIn: true);
         exitDone = completion;
         StartAnimating();
     }
