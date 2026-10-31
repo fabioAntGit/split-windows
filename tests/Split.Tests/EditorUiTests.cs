@@ -178,6 +178,27 @@ public static class EditorUiTests
             finally { EditorWindow.ConfirmDiscard = previous; }
         }));
 
+        Test("Editors", "An open editor follows the look: white and black repaint it at once", () => Ui.Run(() =>
+        {
+            using var picture = Px.Quadrants();
+            var window = Shown(new CropEditor([Fixtures.Url("quadrants.png")], "Crop", picture));
+            try
+            {
+                Look.Color = LookColor.White;
+                Ui.Settle(0.1);
+                Check(Palette.IsWhite && window.Background is SolidColorBrush { Color: var white } && white == Palette.WheelSurface, "White: the open editor turns white");
+                Check(window.TitleBar.Background is SolidColorBrush { Color: var bar } && bar.R > 200, $"and so is its title bar ({bar})");
+                Look.Color = LookColor.Black;
+                Ui.Settle(0.1);
+                Check(!Palette.IsWhite && window.Background is SolidColorBrush { Color: var dark } && dark == Color.FromRgb(42, 42, 42), "Black again: the editor is dark");
+            }
+            finally
+            {
+                Look.Color = LookColor.Black;
+                window.CloseNow();
+            }
+        }));
+
         Test("Crop", "The pointer drags the handles, the grid shows while dragging, and the result size follows", () => Ui.Run(() =>
         {
             using var picture = Px.Quadrants();

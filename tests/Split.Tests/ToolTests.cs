@@ -354,6 +354,18 @@ public static class ToolTests
             Check(QuickTools.FromRaw("compress-to") == QuickTool.CompressToSize && QuickTools.All.Select(t => t.Raw()).Distinct().Count() == 16, "the sixteen ids");
         });
 
+        Test("Tools", "Editors are offered for the right files, and come first on the tools wheel", () =>
+        {
+            var image = new[] { Fixtures.Url("quadrants.jpg") };
+            var video = new[] { Fixtures.Url("clip.mp4") };
+            var pdf = new[] { Fixtures.Url("report.pdf") };
+            Check(EditorTools.Available(image).Contains(EditorTool.Crop) && !EditorTools.Available(image).Contains(EditorTool.Collage), "a collage needs 2 images");
+            Check(EditorTools.Available([.. image, .. image]).Contains(EditorTool.Collage), "a collage with 2 images");
+            Check(EditorTools.Available(video).SequenceEqual([EditorTool.Media]), "a video opens the media editor");
+            Check(EditorTools.Available(pdf).SequenceEqual([EditorTool.PdfPages]), "a PDF opens the organizer");
+            Check(ToolCatalog.Items(image).FirstOrDefault()?.Title == "Crop", "editors come first on the wheel");
+        });
+
         Test("Tools", "A tool refuses files it doesn’t know, with an explanation", () =>
         {
             ExpectError("a tool run on a folder it can't use", ["isn’t"], () => QuickTool.Extract.Run([Fixtures.Url("mystery.xyz")]));
