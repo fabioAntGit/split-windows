@@ -1,5 +1,6 @@
 using System.IO;
 using System.Text;
+using Split.App;
 using static Split.Tests.Harness;
 
 namespace Split.Tests;
@@ -181,6 +182,41 @@ public static class CoreTests
             }
             finally { ActivityLog.MoveToRecycleBin = previous; }
             Check(paths.All(File.Exists), "the originals are untouched");
+
+            // A job that reports progress is Running with that update recorded.
+            var running = ActivityLog.Shared.Add("Progress test", [paths[0]], new CancelToken());
+            ActivityLog.Shared.Start(running);
+            ActivityLog.Shared.Progress(running, 0.5, "half way");
+            var half = ActivityLog.Shared.Entry(running)!;
+            Check(half.State == ActivityState.Running && half.Fraction == 0.5 && half.Detail == "half way", $"progress is recorded: {half.State} {half.Fraction} {half.Detail}");
+            ActivityLog.Shared.Finish(running, ActivityState.Succeeded, "done", notes: ["A note"]);
+            var noted = ActivityLog.Shared.Entry(running)!;
+            Check(!noted.State.IsActive() && noted.Notes.SequenceEqual(["A note"]) && ActivityLog.Shared.Finished.Any(e => e.Id == running), "finished, listed with its notes");
+            ActivityLog.Shared.Progress(running, 0.9);
+            Check(ActivityLog.Shared.Entry(running)!.Fraction == null, "late progress can’t reopen a finished job");
+        });
+
+        Test("Core", "A real conversion: the transparency note reaches the activity list and the card can undo it", () =>
+        {
+            var png = Fixtures.Isolated("quadrants.png", "job-notes");
+            var (hud, headless) = (Hud.Current, NotificationHud.Shared.IsHeadless);
+            NotificationHud.Shared.IsHeadless = true;
+            Hud.Current = NotificationHud.Shared;
+            try
+            {
+                JobRunner.Shared.Convert([png], Format.Jpg);
+                ActivityEntry? entry = null;
+                for (var wait = 0; wait < 400 && entry is null; wait++)
+                {
+                    Thread.Sleep(50);
+                    entry = ActivityLog.Shared.Finished.FirstOrDefault(e => e.Files.SequenceEqual([png]));
+                }
+                Require(entry is not null, "the conversion didn't finish");
+                Check(entry!.State == ActivityState.Succeeded && entry.Outputs.Count == 1, $"succeeded: {entry.Summary}");
+                Check(entry.Notes.Any(n => n.Contains("transparency")), $"the transparency note reaches the activity list: {string.Join("; ", entry.Notes)}");
+                Check(NotificationHud.Shared.Model.UndoJob == entry.Id, "the card can undo this job");
+            }
+            finally { (Hud.Current, NotificationHud.Shared.IsHeadless) = (hud, headless); }
         });
     }
 }
