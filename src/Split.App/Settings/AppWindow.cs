@@ -71,7 +71,16 @@ public class AppWindow : Window
         Look.Changed += look;
         Localizer.Shared.Changed += language;
         Closed += (_, _) => { Look.Changed -= look; Localizer.Shared.Changed -= language; };
-        PreviewKeyDown += (_, e) => { if (e.Key == Key.Escape && ClosesOnEscape) { Dismiss(); e.Handled = true; } };
+        PreviewKeyDown += (_, e) =>
+        {
+            var control = Keyboard.Modifiers == ModifierKeys.Control;
+            if (e.Key == Key.Escape && ClosesOnEscape) Dismiss();
+            // Every window: Ctrl+W closes it (asking first where there is work to lose), Ctrl+, opens Settings.
+            else if (control && e.Key == Key.W) Close();
+            else if (control && e.Key == Key.OemComma) AppWindows.ShowSettings();
+            else return;
+            e.Handled = true;
+        };
         Paint();
     }
 
