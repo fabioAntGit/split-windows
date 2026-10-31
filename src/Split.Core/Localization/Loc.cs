@@ -129,11 +129,11 @@ public static class Loc
     private static string Argument(IReadOnlyList<object?> arguments, int index) =>
         index >= 0 && index < arguments.Count ? Convert.ToString(arguments[index], CultureInfo.InvariantCulture) ?? "" : "";
 
-    /// <summary>"A, B and C" in the current language.</summary>
+    /// <summary>"A, B, and C" in the current language (the comma before "and" is English only).</summary>
     public static string Listed(IReadOnlyList<string> items)
     {
         if (items.Count < 2) return string.Join("", items);
         var and = Localizer.Shared.Language.Resolved() switch { Language.Pt => "e", Language.Fr => "et", Language.Es => "y", _ => "and" };
-        return string.Join(", ", items.Take(items.Count - 1)) + " " + and + " " + items[^1];
+        return string.Join(", ", items.Take(items.Count - 1)) + (items.Count > 2 && and == "and" ? "," : "") + " " + and + " " + items[^1];
     }
 }

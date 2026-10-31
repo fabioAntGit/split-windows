@@ -17,7 +17,7 @@ public static class CoreTests
             Check(StringsFile.Parse("\"ok\" = \"1\"; \"broken\" = ").Count == 1, "a damaged table gives what came before the damage");
             Check(Loc.Fill("%@ of %@", [1, 2]) == "1 of 2" && Loc.Fill("%@", [0.5]) == "0.5", "placeholders fill in order, with invariant numbers");
             Check(Loc.Fill("%%", []) == "%%" && Loc.Fill("5%% %@", ["x"]) == "5% x", "a percent sign is written twice");
-            Check(Loc.Listed(["A"]) == "A" && Loc.Listed(["A", "B"]) == "A and B" && Loc.Listed(["A", "B", "C"]) == "A, B and C", "lists read as sentences");
+            Check(Loc.Listed(["A"]) == "A" && Loc.Listed(["A", "B"]) == "A and B" && Loc.Listed(["A", "B", "C"]) == "A, B, and C", "lists read as sentences");
         });
 
         Test("Core", "Output names stay beside the original, never collide, and Windows accepts them", () =>
