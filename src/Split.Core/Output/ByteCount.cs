@@ -2,14 +2,16 @@ namespace Split;
 
 public static class ByteCount
 {
-    /// <summary>"12.5 MB": decimal units, as Windows shows file sizes, in the current language's number style.</summary>
+    /// <summary>"640 KB", "12.5 MB", "1.25 GB": decimal units, more digits for bigger units, in the current language's number style.</summary>
     public static string Format(long bytes)
     {
         if (bytes < 1000) return bytes == 1 ? "1 byte" : $"{bytes} bytes";
         string[] units = ["KB", "MB", "GB", "TB"];
+        int[] digits = [0, 1, 2, 2];
         var value = bytes / 1000.0;
         var unit = 0;
-        while (value >= 1000 && unit < units.Length - 1) { value /= 1000; unit++; }
-        return value.ToString(value < 100 ? "0.#" : "0", Localizer.Shared.Culture) + " " + units[unit];
+        // 999.7 KB reads as 1 MB, not 1000 KB.
+        while (Math.Round(value, digits[unit]) >= 1000 && unit < units.Length - 1) { value /= 1000; unit++; }
+        return value.ToString(digits[unit] == 0 ? "0" : "0." + new string('#', digits[unit]), Localizer.Shared.Culture) + " " + units[unit];
     }
 }

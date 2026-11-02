@@ -380,6 +380,8 @@ public static class ToolTests
             Check(TargetSize.Parse("2 Mo") == 2_000_000 && TargetSize.Parse("750 Ko") == 750_000, "French units");
             Check(TargetSize.Parse("300000") == 300_000 && TargetSize.Parse("abc") is null && TargetSize.Parse("-2 MB") is null, "plain bytes and nonsense");
             Check(TargetSize.Plain(25_000_000) == "25 MB" && TargetSize.Plain(500_000) == "500 KB" && TargetSize.Plain(1_500_000) == "1.5 MB", "field text");
+            var sizes = new[] { 512L, 640_400, 999_700, 12_540_000, 1_254_000_000 }.Select(ByteCount.Format).ToList();
+            Check(sizes.SequenceEqual(["512 bytes", "640 KB", "1 MB", "12.5 MB", "1.25 GB"]), $"sizes in messages, more digits for bigger units: {string.Join(" | ", sizes)}");
             Check(TargetSize.Uses.All(use => TargetSize.Parse(TargetSize.Plain(use.Bytes)) == use.Bytes), "presets read back");
             Check(TargetSize.Presets.All(bytes => TargetSize.Parse(TargetSize.Plain(bytes)) == bytes), "common sizes read back");
         });
