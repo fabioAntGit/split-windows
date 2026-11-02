@@ -46,7 +46,7 @@ public sealed class PageCell : Border
         if (documentName is not null)
         {
             var name = Kit.Text(documentName, 10, secondary: true, wrap: false);
-            name.TextTrimming = TextTrimming.CharacterEllipsis;
+            Fonts.TrimMiddle(name);
             name.Width = PageWidth;
             name.HorizontalAlignment = HorizontalAlignment.Center;
             name.TextAlignment = TextAlignment.Center;

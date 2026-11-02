@@ -157,7 +157,7 @@ public sealed class CollageEditor : EditorWindow
             grid.Children.Add(picture);
         }
         var name = Kit.Text(Path.GetFileName(path), TextSize.Body, wrap: false);
-        name.TextTrimming = TextTrimming.CharacterEllipsis;
+        Fonts.TrimMiddle(name);
         name.VerticalAlignment = VerticalAlignment.Center;
         name.Margin = new Thickness(8, 0, 8, 0);
         Grid.SetColumn(name, 1);

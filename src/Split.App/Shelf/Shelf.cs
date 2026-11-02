@@ -293,7 +293,7 @@ public sealed class ShelfView : Border
         grid.Children.Add(icon);
         var texts = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
         var name = Fonts.Text(Path.GetFileName(path.TrimEnd('\\')), 12);
-        name.TextTrimming = TextTrimming.CharacterEllipsis;
+        Fonts.TrimMiddle(name);
         var folder = Fonts.Text(Path.GetFileName(Path.GetDirectoryName(path)?.TrimEnd('\\')) is { Length: > 0 } leaf ? leaf : Path.GetDirectoryName(path) ?? "", 10.5, color: Palette.Secondary);
         folder.TextTrimming = TextTrimming.CharacterEllipsis;
         folder.Margin = new Thickness(0, 1, 0, 0);

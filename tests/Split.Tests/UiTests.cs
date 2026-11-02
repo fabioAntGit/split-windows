@@ -8,6 +8,7 @@ using System.Windows.Threading;
 using Split.App;
 using Split.Windows;
 using static Split.Tests.Harness;
+using Fonts = Split.App.Fonts;
 
 namespace Split.Tests;
 
@@ -240,6 +241,28 @@ public static class UiTests
             model.Fraction = 0.1;
             model.Notify();
             Check(Ring(card) is { HasAnimatedProperties: false, Fraction: 0.1 }, "the next job's ring starts at its own share");
+        }));
+
+        Test("Interface", "A file name too long for its place loses its middle", () => Ui.Run(() =>
+        {
+            static double Count(string text) => text.Length;
+            Check(Fonts.Middle("short.png", 20, Count) == "short.png", "a name that fits is left whole");
+            var cut = Fonts.Middle("holidays-in-the-mountains.png", 12, Count);
+            Check(cut == "holida…s.png", $"the start and the extension stay: {cut}");
+            var emoji = Fonts.Middle("😀😀😀😀😀😀.png", 6, Count);
+            Check(System.Text.Encoding.UTF8.GetString(System.Text.Encoding.UTF8.GetBytes(emoji)) == emoji, $"no character is split in half: {emoji}");
+
+            const string name = "a-very-long-file-name-for-the-shelf-row.png";
+            var block = Fonts.Text(name, 12);
+            Fonts.TrimMiddle(block);
+            // In a window, where layout raises size changes as it does in the app.
+            var window = new Window { Content = new Grid { Width = 120, Children = { block } }, SizeToContent = SizeToContent.WidthAndHeight, WindowStyle = WindowStyle.None, ShowInTaskbar = false, ShowActivated = false, Left = -2000 };
+            window.Show();
+            Ui.Settle(0.05);
+            var drawn = block.Text;
+            window.Close();
+            Check(drawn.StartsWith("a-very", StringComparison.Ordinal) && drawn.Contains('…') && drawn.EndsWith(".png", StringComparison.Ordinal), $"drawn cut in its middle: {drawn}");
+            Check(System.Windows.Automation.AutomationProperties.GetName(block) == name, "a screen reader hears the whole name");
         }));
 
         Test("Interface", "HUD: the buttons fit the card, and Open gives way first", () => Ui.Run(() =>

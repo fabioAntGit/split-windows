@@ -260,7 +260,7 @@ public sealed class ActivityTab : TabPage
         top.Children.Add(title);
         var bar = new Bar(entry.Fraction ?? 0) { Margin = new Thickness(0, 6, 0, 0), Visibility = entry.State == ActivityState.Running ? Visibility.Visible : Visibility.Collapsed };
         var detail = Kit.Text(entry.Detail.Length == 0 ? ActivityFormat.Files(entry.Files) : entry.Detail, 11, secondary: true, wrap: false);
-        detail.TextTrimming = TextTrimming.CharacterEllipsis;
+        Fonts.TrimMiddle(detail);
         detail.Margin = new Thickness(0, 6, 0, 0);
         var stack = new StackPanel { Margin = new Thickness(12, 9, 12, 9) };
         stack.Children.Add(top);
@@ -287,7 +287,7 @@ public sealed class ActivityTab : TabPage
         var text = new StackPanel();
         text.Children.Add(Kit.Text(entry.Summary, 12.5, weight: FontWeights.Medium));
         var files = Kit.Text(ActivityFormat.Files(entry.Files) + " · " + ActivityFormat.When(entry), 11, secondary: true, wrap: false);
-        files.TextTrimming = TextTrimming.CharacterEllipsis;
+        Fonts.TrimMiddle(files);
         text.Children.Add(files);
         foreach (var note in entry.Notes) text.Children.Add(Note("info.circle", note));
         if (entry.Undone) text.Children.Add(Note("trash", L("Undone: the new files are in the Recycle Bin.")));
