@@ -334,6 +334,19 @@ public static class UiTests
             Check(!Shelf.Shared.IsVisible, "not shown until asked");
         }));
 
+        Test("Shelf", "Dragged files carry their names and their icons, stacked", () => Ui.Run(() =>
+        {
+            string[] files = [Fixtures.Url("notes.txt"), Fixtures.Url("quadrants.png"), Fixtures.Url("page.html")];
+            var data = ShellDrag.Data(files, 1);
+            Check(data.GetData(DataFormats.FileDrop) is string[] names && names.SequenceEqual(files), "every app reads the files from it");
+            Check(data.GetDataPresent("DragImageBits"), "the shell holds the picture, to draw it under the pointer");
+            Check(ShellDrag.Picture(files[..1], 1).PixelWidth == 32, "one file: its icon");
+            Check(ShellDrag.Picture(files, 1).PixelWidth == 38, "three: each 3 px further down and right");
+            var many = Enumerable.Repeat(files[0], 9).ToList();
+            Check(ShellDrag.Picture(many, 2).PixelWidth == 88, "more than five sit under the fifth, at the screen's scale");
+            Check(Ui.PixelAt(ShellDrag.Picture(files, 1), 19, 19)[3] > 0, "the icons are drawn");
+        }));
+
         Test("Shelf", "It opens against the right edge of the screen under the pointer, at that screen's scale", () => Ui.Run(() =>
         {
             var window = Shelf.Shared.MakeWindow();

@@ -352,7 +352,7 @@ public static class DragStart
             var list = paths();
             if (list.Count == 0) return;
             // The drop decides, as a drag from File Explorer does: a move on the same drive, a copy elsewhere, Shift or Ctrl to choose.
-            DragDrop.DoDragDrop(element, new DataObject(DataFormats.FileDrop, list.ToArray()), DragDropEffects.Copy | DragDropEffects.Move | DragDropEffects.Link);
+            DragDrop.DoDragDrop(element, ShellDrag.Data(list, VisualTreeHelper.GetDpi(element).DpiScaleX), DragDropEffects.Copy | DragDropEffects.Move | DragDropEffects.Link);
         };
     }
 }
