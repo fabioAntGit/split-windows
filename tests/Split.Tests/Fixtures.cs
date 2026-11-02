@@ -29,7 +29,13 @@ public static partial class Fixtures
         var directory = Path.Combine(Root, "_" + folder);
         Directory.CreateDirectory(directory);
         var target = Path.Combine(directory, name);
-        if (!File.Exists(target)) File.Copy(Url(name), target);
+        if (Directory.Exists(Url(name)))
+        {
+            // A folder sample (an RTFD) is copied with its files.
+            Directory.CreateDirectory(target);
+            foreach (var file in Directory.EnumerateFiles(Url(name))) File.Copy(file, Path.Combine(target, Path.GetFileName(file)), overwrite: true);
+        }
+        else if (!File.Exists(target)) File.Copy(Url(name), target);
         return target;
     }
 
@@ -194,6 +200,9 @@ public static partial class Fixtures
         File.WriteAllText(Url("readme.md"), $"# Report\n\n{Phrase}.\n\n- First point\n- Second **point**\n\n[Link](https://example.com)", utf8);
         File.WriteAllText(Url("page.html"), Html, utf8);
         File.WriteAllText(Url("letter.rtf"), @"{\rtf1\ansi\deff0{\fonttbl{\f0 Arial;}}\f0\fs24 Hello Split, caf\'e9 and cr\'e8me br\'fbl\'e9e.\par}", Encoding.ASCII);
+        // An RTFD is a folder with the text as TXT.rtf beside its pictures.
+        Directory.CreateDirectory(Url("notes.rtfd"));
+        File.Copy(Url("letter.rtf"), Path.Combine(Url("notes.rtfd"), "TXT.rtf"));
 
         using (var zip = ZipFile.Open(Url("letter.docx"), ZipArchiveMode.Create))
         {
@@ -252,6 +261,11 @@ public static partial class Fixtures
         using (var tar = File.OpenRead(Url("folder.tar")))
         using (var gzip = new GZipStream(File.Create(Url("folder.tar.gz")), CompressionLevel.Optimal))
             tar.CopyTo(gzip);
+        // Windows' own tar writes 7z; nothing here writes RAR, so that one is laid out by hand.
+        var bsdtar = Path.Combine(Environment.SystemDirectory, "tar.exe");
+        if (File.Exists(bsdtar)) ProcessRunner.RunChecked(bsdtar, ["--format", "7zip", "-cf", Url("folder.7z"), "-C", parent, "Folder"], "Creating a sample");
+        else Stub("folder.7z", [0x37, 0x7A, 0xBC, 0xAF, 0x27, 0x1C, 0, 4]);
+        Write("folder.rar", Rar(new() { [@"Folder\one.txt"] = "one", [@"Folder\two.txt"] = "two" }));
         using (var zip = ZipFile.Open(Url("two.zip"), ZipArchiveMode.Create))
         {
             zip.CreateEntryFromFile(Path.Combine(folder, "one.txt"), "one.txt");
@@ -262,6 +276,52 @@ public static partial class Fixtures
         new Random(3).NextBytes(corrupt);
         corrupt[0] = 0x50; corrupt[1] = 0x4B; corrupt[2] = 0x03; corrupt[3] = 0x04;
         Write("corrupt.zip", corrupt);
+    }
+
+    /// <summary>A RAR 4 archive storing its files as they are: the marker, a main header, a header before each file, the end.</summary>
+    private static byte[] Rar(Dictionary<string, string> files)
+    {
+        using var stream = new MemoryStream();
+        using var writer = new BinaryWriter(stream);
+        writer.Write("Rar!\u001A\u0007\u0000"u8);
+        Block(0x73, 0, new byte[6]);
+        foreach (var (name, text) in files)
+        {
+            var data = Encoding.ASCII.GetBytes(text);
+            var path = Encoding.ASCII.GetBytes(name);
+            using var header = new MemoryStream();
+            using (var fields = new BinaryWriter(header))
+            {
+                // Packed and unpacked sizes, made on Windows, the data's CRC, 1 January 2024 as a DOS time,
+                // version 2.0, stored, the name's length, a plain file's attributes, the name.
+                fields.Write(data.Length); fields.Write(data.Length); fields.Write((byte)2); fields.Write(Crc32(data)); fields.Write(0x58210000);
+                fields.Write((byte)20); fields.Write((byte)0x30); fields.Write((ushort)path.Length); fields.Write(0x20); fields.Write(path);
+            }
+            Block(0x74, 0x8000, header.ToArray());
+            writer.Write(data);
+        }
+        Block(0x7B, 0x4000, []);
+        return stream.ToArray();
+
+        // Each block is the low half of its CRC, then its type, flags, size and the rest.
+        void Block(byte type, ushort flags, byte[] rest)
+        {
+            var size = 7 + rest.Length;
+            byte[] head = [type, (byte)flags, (byte)(flags >> 8), (byte)size, (byte)(size >> 8), .. rest];
+            writer.Write((ushort)Crc32(head));
+            writer.Write(head);
+        }
+    }
+
+    private static uint Crc32(byte[] bytes)
+    {
+        var crc = ~0u;
+        foreach (var value in bytes)
+        {
+            crc ^= value;
+            for (var bit = 0; bit < 8; bit++) crc = (crc & 1) != 0 ? (crc >> 1) ^ 0xEDB88320 : crc >> 1;
+        }
+        return ~crc;
     }
 
     // MARK: Data

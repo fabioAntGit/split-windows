@@ -17,11 +17,11 @@ public static class ConversionTests
     private static readonly string[] Samples =
     [
         "quadrants.png", "quadrants.jpg", "quadrants.heic", "quadrants.tiff", "quadrants.bmp", "quadrants.webp", "icon.ico",
-        "animated.gif", "drawing.svg", "quadrants.avif",
+        "animated.gif", "drawing.svg", "quadrants.avif", "quadrants.jxl",
         "tone.wav", "tone.mp3", "tone.flac", "tone.m4a", "tone.opus", "tone.ogg", "tone.aiff", "tone.wma",
         "clip.mp4", "clip.mov", "clip.m4v", "clip.mkv", "clip.webm", "clip.avi", "clip.wmv",
-        "notes.txt", "readme.md", "page.html", "letter.rtf", "letter.docx", "letter.odt", "letter.doc", "book.epub", "report.pdf",
-        "prices.csv", "people.tsv", "sales.xlsx", "subs.srt", "subs.vtt", "folder.zip", "folder.tar", "folder.tar.gz",
+        "notes.txt", "readme.md", "page.html", "letter.rtf", "notes.rtfd", "letter.docx", "letter.odt", "letter.doc", "book.epub", "report.pdf",
+        "prices.csv", "people.tsv", "sales.xlsx", "subs.srt", "subs.vtt", "folder.zip", "folder.tar", "folder.tar.gz", "folder.7z", "folder.rar",
         "data.json", "data.xml",
     ];
 
@@ -36,9 +36,9 @@ public static class ConversionTests
     {
         foreach (var name in Samples)
         {
-            Test("Conversion", $"{name} → every format on the wheel", () =>
+            Test("Conversion", $"{name} → every format on the wheel and back", () =>
             {
-                Require(File.Exists(Fixtures.Url(name)), $"The sample {name} is missing");
+                Require(File.Exists(Fixtures.Url(name)) || Directory.Exists(Fixtures.Url(name)), $"The sample {name} is missing");
                 if (Fixtures.Stubs.Contains(name)) Skip($"{name} can’t be made on Windows: put a real one in tests/Fixtures");
                 var source = Fixtures.Isolated(name, $"matrix-{name}");
                 var format = Formats.Detect(source)!.Value;
@@ -47,22 +47,41 @@ public static class ConversionTests
                 var before = Files.Sha(source);
                 foreach (var target in targets)
                 {
-                    try
-                    {
-                        var outputs = Conversions.Convert(source, target);
-                        Check(outputs.Count > 0, $"{name} → {target.Label()}: no result");
-                        foreach (var output in outputs) Validate(output, target, source, format);
-                    }
-                    catch (Exception error) when (error is not TestFailure)
-                    {
-                        Check(false, $"{name} → {target.Label()} failed: {Explain.Error(error, source).FullText}");
-                    }
+                    var outputs = Step(source, format, target, name);
+                    // And back, when the result's wheel offers the original's format (from the first page of a folder of pages).
+                    if (outputs.FirstOrDefault() is not { } made || !Conversions.Targets(target).Contains(format)) continue;
+                    if ((Directory.Exists(made) ? Files.List(made).FirstOrDefault() : made) is { } result) Step(result, target, format, $"{name} → {target.Label()}");
                 }
                 Check(Files.Sha(source) == before, $"{name}: the original was changed");
                 var leftovers = Directory.EnumerateFileSystemEntries(Path.GetDirectoryName(source)!, ".split-*").ToList();
                 Check(leftovers.Count == 0, $"{name}: temporary files were left: {string.Join(", ", leftovers.Select(Path.GetFileName))}");
             });
         }
+
+        static IReadOnlyList<string> Step(string from, Format format, Format target, string what)
+        {
+            try
+            {
+                var outputs = Conversions.Convert(from, target);
+                Check(outputs.Count > 0, $"{what} → {target.Label()}: no result");
+                foreach (var output in outputs) Validate(output, target, from, format);
+                return outputs;
+            }
+            catch (Exception error) when (error is not TestFailure)
+            {
+                Check(false, $"{what} → {target.Label()} failed: {Explain.Error(error, from).FullText}");
+                return [];
+            }
+        }
+
+        Test("Conversion", "Every format with targets on the wheel has a sample in the matrix", () =>
+        {
+            var covered = Samples.Select(name => Formats.Detect(Fixtures.Url(name))).ToHashSet();
+            // Only Excel, PowerPoint or LibreOffice open these, and nothing here can make one.
+            Format[] office = [Format.Xls, Format.Ods, Format.Pptx, Format.Ppt, Format.Odp];
+            var missing = Formats.All.Where(f => Conversions.Targets(f).Count > 0 && !covered.Contains(f) && !office.Contains(f)).ToList();
+            Check(missing.Count == 0, $"no sample for {string.Join(", ", missing.Select(f => f.Label()))}");
+        });
 
         Test("Conversion", "The EXIF orientation is applied (300×200 rotated → 200×300)", () =>
         {
@@ -417,7 +436,7 @@ public static class ConversionTests
                         int pages;
                         try { pages = PdfReader.Open(output, PdfDocumentOpenMode.Import).PageCount; } catch (Exception) { pages = 0; }
                         Check(pages >= 1, $"{label}: invalid PDF");
-                        if (format is Format.Txt or Format.Md or Format.Html or Format.Rtf or Format.Docx or Format.Odt or Format.Doc or Format.Epub)
+                        if (format is Format.Txt or Format.Md or Format.Html or Format.Rtf or Format.Rtfd or Format.Docx or Format.Odt or Format.Doc or Format.Epub)
                             Check(DocumentTests.PdfText(output).Contains("Split"), $"{label}: the PDF doesn’t have the text");
                         break;
                     case Format.Png or Format.Jpg:

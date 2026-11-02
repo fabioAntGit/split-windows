@@ -107,6 +107,7 @@ public static partial class Fixtures
             Save(quads, "quadrants.bmp", MagickFormat.Bmp);
             Save(quads, "quadrants.webp", MagickFormat.WebP, 90);
             Save(quads, "quadrants.avif", MagickFormat.Avif, 80);
+            Save(quads, "quadrants.jxl", MagickFormat.Jxl, 90);
         }
         using (var icon = Quads(64, 64)) Save(icon, "icon.ico", MagickFormat.Ico);
         using (var photo = Noise(2400, 1600)) Save(photo, "photo.jpg", MagickFormat.Jpeg, 100);
