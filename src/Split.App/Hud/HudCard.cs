@@ -97,7 +97,7 @@ public sealed class HudCard : Border
             Visibility = Visibility.Collapsed,
             ToolTip = L("Close"),
             Cursor = System.Windows.Input.Cursors.Arrow,
-            Template = Plain(),
+            Template = SplitButton.Plain(),
             Content = new Border
             {
                 CornerRadius = new CornerRadius(9),
@@ -110,12 +110,6 @@ public sealed class HudCard : Border
         System.Windows.Automation.AutomationProperties.SetName(button, L("Close"));
         button.Click += (_, _) => actions.Close();
         return button;
-    }
-
-    private static ControlTemplate Plain()
-    {
-        var presenter = new FrameworkElementFactory(typeof(ContentPresenter));
-        return new ControlTemplate(typeof(Button)) { VisualTree = presenter };
     }
 
     private void Rebuild()

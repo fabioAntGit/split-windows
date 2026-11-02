@@ -231,9 +231,9 @@ public sealed class ShelfView : Border
             HorizontalAlignment = HorizontalAlignment.Right,
             Focusable = false,
             ToolTip = L("Actions"),
-            Background = Brushes.Transparent,
-            BorderThickness = new Thickness(0),
-            Content = Icons.Block("ellipsis.circle", 15),
+            Template = SplitButton.Plain(),
+            Cursor = Cursors.Hand,
+            Content = new Border { Background = Brushes.Transparent, Child = Icons.Block("ellipsis.circle", 15) },
         };
         System.Windows.Automation.AutomationProperties.SetName(button, L("Actions"));
         button.Click += (_, _) =>
@@ -306,10 +306,11 @@ public sealed class ShelfView : Border
         {
             Visibility = Visibility.Collapsed,
             Focusable = false,
-            Background = Brushes.Transparent,
-            BorderThickness = new Thickness(0),
+            // No hover look, only the pointing hand.
+            Template = SplitButton.Plain(),
+            Cursor = Cursors.Hand,
             Margin = new Thickness(4, 0, 0, 0),
-            Content = Icons.Block("xmark.circle.fill", 15, Palette.Secondary),
+            Content = new Border { Background = Brushes.Transparent, Child = Icons.Block("xmark.circle.fill", 15, Palette.Secondary) },
             ToolTip = L("Remove from the shelf (the file isn’t deleted)"),
         };
         System.Windows.Automation.AutomationProperties.SetName(remove, L("Remove from the shelf (the file isn’t deleted)"));

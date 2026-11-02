@@ -59,6 +59,9 @@ public sealed class SplitButton : Button
         IsEnabledChanged += (_, _) => Opacity = IsEnabled ? 1 : 0.4;
     }
 
+    /// <summary>A template with no look of its own (no fill on hover or press), for a button that is only its content.</summary>
+    public static ControlTemplate Plain() => new(typeof(Button)) { VisualTree = new FrameworkElementFactory(typeof(ContentPresenter)) };
+
     /// <summary>The fill and edge for the state; also what the tests read.</summary>
     private void Paint(bool pressed)
     {
