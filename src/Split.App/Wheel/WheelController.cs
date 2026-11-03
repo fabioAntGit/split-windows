@@ -250,10 +250,14 @@ public sealed class WheelController
         if (!Headless)
         {
             var win = EnsureWindow();
+            // The screen behind a wheel still showing (replaced in place, or fading out) has that wheel in it: its glass is kept.
+            // shortcut: kept even when the new wheel moves to the pointer, a blur from a little way off; exclude the window from the capture if it shows.
+            var kept = win.IsVisible ? (win.Content as WheelView)?.Backdrop : null;
             win.WasActivated = false;
             win.Content = view;
             // A probe is already under the pointer; a wheel replaced in place moves to where the pointer is now.
             anchor = probing && !request.ClickMode ? Anchor() : Place(win, view.Side, atCursor: !request.ClickMode);
+            if (Palette.Glass) view.Backdrop = kept ?? Frost.Behind((int)placed.X, (int)placed.Y, (int)placed.Width, (int)placed.Height);
             Reveal(win, activate: request.ClickMode);
         }
         view.AnimateIn(anchor);

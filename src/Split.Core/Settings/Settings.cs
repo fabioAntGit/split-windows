@@ -147,6 +147,20 @@ public static class Settings
         set => Write("wheelNames", value);
     }
 
+    /// <summary>The desktop shows through the wheel, blurred and tinted with its colour, instead of the solid disc.</summary>
+    public static bool GlassWheel
+    {
+        get => Read<bool?>("glassWheel") ?? false;
+        set => Write("glassWheel", value);
+    }
+
+    /// <summary>How strongly the glass takes on the colour, from 0 (clear) to 1 (nearly solid).</summary>
+    public static double GlassIntensity
+    {
+        get => Read<double?>("glassIntensity") is { } value && double.IsFinite(value) ? Math.Clamp(value, 0, 1) : 0.25;
+        set => Write("glassIntensity", Math.Clamp(value, 0, 1));
+    }
+
     /// <summary>What was typed last time in "Compress To…".</summary>
     public static string LastTargetSize
     {

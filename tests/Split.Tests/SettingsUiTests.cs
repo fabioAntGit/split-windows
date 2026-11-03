@@ -391,8 +391,7 @@ public static class SettingsUiTests
                 Check(picture.Source is BitmapSource { } bitmap && Near(bitmap.Width, WheelView.Picture([new WheelItem("a", "A", null)], "t", "", null, new WheelStyle(WheelSize.ExtraLarge, true)).Width, 1),
                       "the wheel in the preview keeps its size, whatever size the wheel opens at");
                 var texts = Texts(tab);
-                Check(!texts.Any(t => t.Contains("Glass") || t.Contains("Intensity")), "no glass options");
-                foreach (var expected in new[] { "Size", "Names under icons", "Color", "Black or white for the wheel, the editors and every window." })
+                foreach (var expected in new[] { "Size", "Names under icons", "Color", "Black or white for the wheel, the editors and every window.", "Glass background", "Intensity" })
                     Check(texts.Contains(expected), $"missing “{expected}”");
                 Check(ButtonLabelled(tab, "Group") is not null && ButtonLabelled(tab, "Restore Defaults") is not null, "Group and Restore Defaults");
                 Check(texts.Any(t => t.Contains("Ctrl-click")) && !texts.Any(t => t.Contains("⌘")), "Ctrl-click selects");
@@ -599,6 +598,36 @@ public static class SettingsUiTests
             {
                 (Settings.WheelSize, Settings.WheelNames) = size;
                 Look.Color = LookColor.Black;
+                window.Close();
+            }
+        }));
+
+        Test("Settings", "Look: the glass background is saved, and its intensity can be set only while it is on", () => Ui.Run(() =>
+        {
+            var before = (Settings.GlassWheel, Settings.GlassIntensity);
+            (Settings.GlassWheel, Motion.Transparency) = (false, true);
+            var window = new SettingsWindow(SettingsTab.Wheels);
+            try
+            {
+                window.Show();
+                var tab = window.Page(SettingsTab.Wheels);
+                var toggle = Named<Toggle>(tab, "Glass background");
+                var slider = Named<SliderBar>(tab, "Intensity");
+                Check(!toggle.IsOn && !slider.IsEnabled, "off: the intensity waits");
+                toggle.Click();
+                Check(Settings.GlassWheel, "the toggle saves it");
+                Check(slider.IsEnabled == !Motion.IncreaseContrast, "on: the intensity can be set");
+                slider.Move(0.8);
+                Check(Near(Settings.GlassIntensity, 0.8, 0.01), $"the intensity is saved: {Settings.GlassIntensity}");
+                Check(Texts(tab).Any(t => t.Contains("Transparency effects")), "the note says when it stays solid");
+                Motion.Transparency = false;
+                window.Page(SettingsTab.Wheels).Rebuild();
+                Check(!Named<SliderBar>(window.Page(SettingsTab.Wheels), "Intensity").IsEnabled, "with Windows' transparency effects off the intensity waits too");
+            }
+            finally
+            {
+                Motion.Transparency = null;
+                (Settings.GlassWheel, Settings.GlassIntensity) = before;
                 window.Close();
             }
         }));

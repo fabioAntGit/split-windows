@@ -79,6 +79,9 @@ public sealed class WheelView : FrameworkElement
     /// <summary>Files were dropped on a group: the wheel stays open for a click on one of its slices.</summary>
     public Action? OnNeedsClicks { get; set; }
 
+    /// <summary>What is behind the element, frosted, for the glass to show; it covers the whole element.</summary>
+    public ImageSource? Backdrop { get; set; }
+
     /// <summary>How often a change asked for the wheel to be drawn again; tests use it to see that every change reaches the screen.</summary>
     public int RedrawCount { get; private set; }
 
@@ -168,9 +171,9 @@ public sealed class WheelView : FrameworkElement
     /// (Settings previews arrangements with it). It is clear round the disc.
     /// </summary>
     public static BitmapSource Picture(IEnumerable<WheelItem> items, string title, string subtitle, int? highlighted = null,
-                                       WheelStyle? style = null, string? back = null, double scale = 2)
+                                       WheelStyle? style = null, string? back = null, double scale = 2, ImageSource? backdrop = null)
     {
-        var view = new WheelView(items, title, subtitle, [], false, style);
+        var view = new WheelView(items, title, subtitle, [], false, style) { Backdrop = backdrop };
         if (back is not null) view.trail.Push(new Level([], back, "", 0));
         if (highlighted is { } index && index >= 0 && index < view.pops.Length)
         {
@@ -504,6 +507,22 @@ public sealed class WheelView : FrameworkElement
 
     private static Point At(Point centre, double angle, double radius) => new(centre.X + radius * Math.Sin(angle), centre.Y - radius * Math.Cos(angle));
 
+    /// <summary>The disc as glass: what is behind it, frosted, under the tint of the chosen colour, lit a little from above.</summary>
+    private void DrawGlass(DrawingContext dc, Point center, double disc)
+    {
+        dc.PushClip(new EllipseGeometry(center, disc, disc));
+        if (Backdrop is { } behind)
+        {
+            var frost = new DrawingGroup();
+            RenderOptions.SetBitmapScalingMode(frost, BitmapScalingMode.Linear);
+            frost.Children.Add(new ImageDrawing(behind, new Rect(0, 0, Side, Side)));
+            dc.DrawDrawing(frost);
+        }
+        dc.DrawEllipse(Palette.Brush(Palette.GlassTint(Settings.GlassIntensity)), null, center, disc, disc);
+        dc.DrawEllipse(new LinearGradientBrush(Color.FromArgb(26, 255, 255, 255), Color.FromArgb(0, 255, 255, 255), 90), null, center, disc, disc);
+        dc.Pop();
+    }
+
     protected override void OnRender(DrawingContext dc)
     {
         var center = Center;
@@ -523,13 +542,15 @@ public sealed class WheelView : FrameworkElement
         dc.PushTransform(AroundPoint(exitFade is { } leaving && !reduceMotion ? 1 - 0.06 * (1 - leaving.Value) : 1, center));
 
         if (forWindow) DrawShadow(dc, center, disc);
-        dc.DrawEllipse(Palette.Brush(forWindow ? Palette.Floating : Palette.WheelSurface), null, center, disc, disc);
+        var glass = Palette.Glass;
+        if (glass) DrawGlass(dc, center, disc);
+        else dc.DrawEllipse(Palette.Brush(forWindow ? Palette.Floating : Palette.WheelSurface), null, center, disc, disc);
 
         dc.PushOpacity(levelFade?.Value ?? 1);
         dc.PushTransform(AroundPoint(levelScale.Value, center));
 
-        // Edge of the disc: a hairline.
-        dc.DrawEllipse(null, new Pen(Palette.Brush(Ink(contrast ? 0.5 : 0.14)), contrast ? 1.5 : 1), center, disc - 0.5, disc - 0.5);
+        // Edge of the disc: a hairline, brighter on glass, where it reads as light catching its edge.
+        dc.DrawEllipse(null, new Pen(Palette.Brush(Ink(contrast ? 0.5 : glass ? 0.35 : 0.14)), contrast ? 1.5 : 1), center, disc - 0.5, disc - 0.5);
 
         // Separators between segments.
         if (Items.Count > 1)

@@ -314,6 +314,47 @@ public static class WheelTests
             }
             finally { App.Look.Color = look; }
         }));
+
+        Test("Wheels", "Glass: what is behind the wheel shows through its disc, tinted; without glass the disc is solid", () => Ui.Run(() =>
+        {
+            if (App.Motion.IncreaseContrast) Skip("high contrast is on, so the wheel is always solid");
+            var (look, glass, intensity) = (Settings.LookColor, Settings.GlassWheel, Settings.GlassIntensity);
+            try
+            {
+                App.Motion.Transparency = true;
+                App.Look.Color = LookColor.Black;
+                var items = Enumerable.Range(0, 6).Select(i => new WheelItem(i.ToString(), $"Item {i}", null)).ToList();
+                var red = System.Windows.Media.Imaging.BitmapSource.Create(2, 2, 96, 96, System.Windows.Media.PixelFormats.Bgra32, null,
+                                                                           Enumerable.Repeat(new byte[] { 0, 0, 255, 255 }, 4).SelectMany(b => b).ToArray(), 8);
+                var layout = WheelLayout.Make(items.Select(i => i.Title).ToList(), items.Select(i => i.Symbol).ToList(), new WheelStyle(), App.WheelView.Text);
+                // Past the first slice, between it and the rim, where nothing else is drawn.
+                byte[] Disc(System.Windows.Media.Imaging.BitmapSource image)
+                {
+                    var (scale, r, angle) = (image.PixelWidth / layout.Size, (layout.Outer + layout.Disc) / 2, layout.Step / 2);
+                    return Ui.PixelAt(image, (int)((layout.Size / 2 + r * Math.Sin(angle)) * scale), (int)((layout.Size / 2 - r * Math.Cos(angle)) * scale));
+                }
+                (Settings.GlassWheel, Settings.GlassIntensity) = (false, 0);
+                var solid = Disc(App.WheelView.Picture(items, "Wheel", "", style: new WheelStyle(), backdrop: red));
+                Check(solid[2] == solid[1] && solid[2] < 80, $"without glass the backdrop is ignored: {solid[2]},{solid[1]},{solid[0]}");
+                Settings.GlassWheel = true;
+                var clear = Disc(App.WheelView.Picture(items, "Wheel", "", style: new WheelStyle(), backdrop: red));
+                Check(clear[2] > clear[1] + 30 && clear[3] == 255, $"with glass the red shows through: {clear[2]},{clear[1]},{clear[0]}");
+                Settings.GlassIntensity = 1;
+                var strong = Disc(App.WheelView.Picture(items, "Wheel", "", style: new WheelStyle(), backdrop: red));
+                Check(strong[2] < clear[2] - 10, $"more intensity, less of it: {strong[2]} against {clear[2]}");
+                var none = Disc(App.WheelView.Picture(items, "Wheel", "", style: new WheelStyle()));
+                Check(none[3] > 150, $"with nothing captured the tint alone still makes a disc: alpha {none[3]}");
+                App.Motion.Transparency = false;
+                var off = Disc(App.WheelView.Picture(items, "Wheel", "", style: new WheelStyle(), backdrop: red));
+                Check(off[2] == off[1], $"with Windows' transparency effects off it stays solid: {off[2]},{off[1]},{off[0]}");
+            }
+            finally
+            {
+                App.Motion.Transparency = null;
+                App.Look.Color = look;
+                (Settings.GlassWheel, Settings.GlassIntensity) = (glass, intensity);
+            }
+        }));
     }
 
     /// <summary>Runs <paramref name="body"/> with no saved arrangement, putting back whatever was there before.</summary>

@@ -68,6 +68,64 @@ public static class UiTests
             finally { Look.Color = color; }
         });
 
+        Test("Interface", "Glass: whatever the desktop behind it, names on the wheel and on the highlighted slice stay ≥ 4.5:1", () =>
+        {
+            var color = Settings.LookColor;
+            try
+            {
+                foreach (var look in LookColors.All)
+                {
+                    Look.Color = look;
+                    // The hardest desktop is the opposite of the tint: white behind black glass, black behind white.
+                    var surface = Palette.Over(Palette.GlassTint(0), Palette.IsWhite ? Colors.Black : Colors.White);
+                    Check(Palette.Contrast(Palette.WheelInk, surface) >= 4.5, $"{look}: names on clear glass: {Palette.Contrast(Palette.WheelInk, surface):0.00}");
+                    var slice = Palette.Over(Palette.WheelSelection, surface);
+                    Check(Palette.Contrast(Palette.WheelInk, slice) >= 4.5, $"{look}: names on the highlighted slice: {Palette.Contrast(Palette.WheelInk, slice):0.00}");
+                    Check(Palette.GlassTint(1).A > Palette.GlassTint(0).A && Palette.GlassTint(1).A < 255, $"{look}: more intensity, more colour, never solid");
+                }
+            }
+            finally { Look.Color = color; }
+        });
+
+        Test("Interface", "Frost: the picture behind the glass is made small, opaque and smooth, keeping its colours", () => Ui.Run(() =>
+        {
+            // Left half red, right half blue, 256 pixels square.
+            const int side = 256;
+            var pixels = new byte[side * side * 4];
+            for (var at = 0; at < side * side; at++)
+                (pixels[at * 4], pixels[at * 4 + 2], pixels[at * 4 + 3]) = at % side < side / 2 ? ((byte)0, (byte)255, (byte)255) : ((byte)255, (byte)0, (byte)255);
+            var frosted = Frost.Blur(pixels, side, side);
+            Check(frosted.PixelWidth == 32 && frosted.PixelHeight == 32, $"a thirty-second of the side: {frosted.PixelWidth}×{frosted.PixelHeight}");
+            var (left, middle, right) = (Ui.PixelAt(frosted, 0, 16), Ui.PixelAt(frosted, 16, 16), Ui.PixelAt(frosted, 31, 16));
+            Check(left[2] == 255 && left[0] == 0 && right[0] == 255 && right[2] == 0, "the far edges keep their colour");
+            Check(middle[0] is > 60 and < 200 && middle[2] is > 60 and < 200, $"the meeting is blended: {middle[2]},{middle[0]}");
+            Check(left[3] == 255 && middle[3] == 255, "opaque");
+            var odd = Frost.Blur(new byte[37 * 5 * 4], 37, 5);
+            Check(odd.PixelWidth == 37 && odd.PixelHeight == 5, "a picture smaller than 32 pixels keeps its size");
+        }));
+
+        // A wheel still showing is in what is read, which is why one replaced in place keeps the glass it had.
+        Test("Interface", "Glass: the screen is read as shown, at its pixels, a clear window like the wheel's own included", () => Ui.Run(() =>
+        {
+            var window = new Window
+            {
+                AllowsTransparency = true, WindowStyle = WindowStyle.None, Background = new SolidColorBrush(Color.FromRgb(255, 0, 255)),
+                Left = 40, Top = 40, Width = 120, Height = 120, Topmost = true, ShowActivated = false, ShowInTaskbar = false,
+            };
+            window.Show();
+            try
+            {
+                Ui.Settle(0.3);
+                var scale = VisualTreeHelper.GetDpi(window).DpiScaleX;
+                var (at, side) = ((int)(60 * scale), (int)(80 * scale));
+                var pixels = Desktop.Capture(at, at, side, side);
+                Require(pixels is not null, "the screen can be read");
+                var own = Enumerable.Range(0, side * side).Count(i => pixels![i * 4] == 255 && pixels[i * 4 + 1] == 0 && pixels[i * 4 + 2] == 255);
+                Check(own > side * side * 9 / 10, $"only {own} of {side * side} pixels are the window's");
+            }
+            finally { window.Close(); }
+        }));
+
         Test("Interface", "The logo: six slices apart from each other around an open centre; the tray icon is drawn in the taskbar's colour", () => Ui.Run(() =>
         {
             const double cx = 100, cy = 100, radius = 80, step = 2 * Math.PI / LogoGeometry.Slices;
@@ -420,12 +478,13 @@ public static class UiTests
             finally { LaunchAtLogin.Set(false, name); }
         });
 
-        Test("Interface", "Snapshots: the HUD in each state, the shelf and the tray menu, in black and in white", () => Ui.Run(() =>
+        Test("Interface", "Snapshots: the HUD in each state, the shelf, the tray menu and the wheel on glass, in black and in white", () => Ui.Run(() =>
         {
             var folder = Path.Combine(Fixtures.Root, "_captures-windows");
             Directory.CreateDirectory(folder);
             var made = 0;
-            var color = Settings.LookColor;
+            var (color, glass) = (Settings.LookColor, Settings.GlassWheel);
+            (Settings.GlassWheel, Motion.Transparency) = (true, true);
             try
             {
                 string[] files = [.. Directory.EnumerateFiles(Fixtures.Root).Where(f => !Path.GetFileName(f).StartsWith('.')).Order(StringComparer.Ordinal)];
@@ -475,10 +534,16 @@ public static class UiTests
                     var (width, height) = (Math.Ceiling(menu.ActualWidth), Math.Ceiling(menu.ActualHeight));
                     Capture(folder, $"tray-menu-{look.Raw()}", new Border { Background = new VisualBrush(menu) { Stretch = Stretch.None, AlignmentX = AlignmentX.Left, AlignmentY = AlignmentY.Top } }, new Size(width, height), ref made);
                     menu.IsOpen = false;
+
+                    // The wheel on glass, over a frosted picture standing in for the desktop.
+                    var behind = Frost.Square(new BitmapImage(new Uri(Fixtures.Url("quadrants.png"))));
+                    var items = Enumerable.Range(0, 6).Select(i => new WheelItem(i.ToString(), $"Item {i}", null));
+                    var wheel = WheelView.Picture(items, "Wheel", "", highlighted: 2, scale: 1, backdrop: behind);
+                    Capture(folder, $"wheel-glass-{look.Raw()}", new Image { Source = wheel }, new Size(wheel.PixelWidth, wheel.PixelHeight), ref made);
                 }
             }
-            finally { Look.Color = color; }
-            Check(made == 20, $"only {made} captures were made");
+            finally { (Look.Color, Settings.GlassWheel, Motion.Transparency) = (color, glass, null); }
+            Check(made == 22, $"only {made} captures were made");
         }));
     }
 

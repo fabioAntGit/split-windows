@@ -548,7 +548,8 @@ public sealed class WheelsTab : TabPage
             items.Insert(Math.Min(active.To, items.Count), moving);
             highlighted = Math.Min(active.To, items.Count - 1);
         }
-        picture.Source = WheelView.Picture(items, shown.Title, wheel == WheelKind.Convert ? source.Title() : "", highlighted, new WheelStyle(PreviewSize, names), shown.Back);
+        picture.Source = WheelView.Picture(items, shown.Title, wheel == WheelKind.Convert ? source.Title() : "", highlighted, new WheelStyle(PreviewSize, names), shown.Back,
+                                           backdrop: Palette.Glass ? DesktopPicture.Frosted : null);
     }
 
     private void PreviewMoved(MouseEventArgs e)
@@ -768,6 +769,27 @@ public sealed class WheelsTab : TabPage
         colourRow.Children.Add(colourLabel);
         stack.Children.Add(colourRow);
         stack.Children.Add(Kit.Text(L("Black or white for the wheel, the editors and every window."), 11, secondary: true));
+
+        var solidOnly = Motion.ReduceTransparency || Motion.IncreaseContrast;
+        var intensity = new SliderBar(Settings.GlassIntensity, 0, 1, L("Intensity")) { Width = 160 };
+        void Enable(bool on) { intensity.IsEnabled = on && !solidOnly; intensity.Opacity = intensity.IsEnabled ? 1 : 0.4; }
+        Enable(Settings.GlassWheel);
+        intensity.Changed += value => { Settings.GlassIntensity = value; RefreshPreview(); };
+        var glass = new Toggle(Settings.GlassWheel, L("Glass background"));
+        glass.Changed += on => { Settings.GlassWheel = on; Enable(on); RefreshPreview(); };
+        DockPanel Labelled(FrameworkElement control, string label, double top)
+        {
+            var row = new DockPanel { Margin = new Thickness(0, top, 0, 4) };
+            DockPanel.SetDock(control, Dock.Right);
+            row.Children.Add(control);
+            var text = Kit.Text(label, 13, wrap: false);
+            text.VerticalAlignment = VerticalAlignment.Center;
+            row.Children.Add(text);
+            return row;
+        }
+        stack.Children.Add(Labelled(glass, L("Glass background"), 10));
+        stack.Children.Add(Labelled(intensity, L("Intensity"), 4));
+        stack.Children.Add(Kit.Text(L("With glass, the desktop shows through the wheel, blurred and tinted with that colour as strongly as the intensity says; with “Transparency effects” off in Windows’ settings, it stays solid."), 11, secondary: true));
         return stack;
     }
 
@@ -876,7 +898,12 @@ public static class DesktopPicture
         }
     }
 
+    private static readonly Lazy<BitmapSource?> Frost = new(() => Picture.Value is { } image ? Split.App.Frost.Square(image) : null);
+
     public static bool Exists => Picture.Value is not null;
+
+    /// <summary>The picture as the glass shows it, cut to the square the preview shows.</summary>
+    public static BitmapSource? Frosted => Frost.Value;
 
     public static FrameworkElement Element(double side)
     {

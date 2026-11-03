@@ -76,6 +76,7 @@ The preview is the wheel itself, as saved, over your desktop picture. It always 
 - **Size:** from Extra Small to Extra Large. Icons always stay on one ring; a name too long for a small slice ends in “…”, and the centre shows it whole.
 - **Names under icons:** turn it off for a wheel with icons only.
 - **Color:** black (a soft black) or white, for the wheel, the editors and every other window.
+- **Glass background:** the desktop shows through the wheel, blurred and tinted with that colour; **Intensity** sets how strongly. With Windows' **Transparency effects** off (Settings › Personalization › Colors) the wheel stays solid.
 
 ## Editors
 
@@ -123,8 +124,9 @@ The XLSX it writes keeps numbers, dates, percentages and formulas, with a bold h
 ## Look
 
 - The wheel is black or white, and the slice under the pointer is lit by a soft platter of the wheel's ink, inset in its slice. The editors wear the same backdrop, and Settings and the other windows follow the same colour.
+- With **Glass background** on, the wheel reads the screen behind it as it opens, blurs it and tints it. The picture stays in memory, is never saved, and goes with the wheel. Names keep a contrast of at least 4.5:1 whatever the desktop shows.
 - Springs are critically damped and interruptible, the wheel opens at the pointer, and press highlights and release confirms. Sounds are a soft drop when a job is done, two lower ones on an error and a quiet tick as the pointer crosses the wheel, each kind with its own switch.
-- Windows' **Animation effects** and contrast themes are respected. Text on the highlight has a contrast of at least 4.5:1 in light and dark (checked by the tests).
+- Windows' **Animation effects**, **Transparency effects** and contrast themes are respected. Text on the highlight has a contrast of at least 4.5:1 in light and dark (checked by the tests).
 - The interface is in English, Portuguese, French and Spanish.
 
 ## Errors explained

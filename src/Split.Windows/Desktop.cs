@@ -48,6 +48,46 @@ public static class Desktop
     /// <summary>"Animation effects" in Windows' accessibility settings, turned off.</summary>
     public static bool ReduceMotion => SystemParametersInfo(0x1042, 0, out int on, 0) && on == 0;
 
+    /// <summary>"Transparency effects" in Windows' settings; on unless turned off.</summary>
+    public static bool TransparencyEffects
+    {
+        get
+        {
+            using var key = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize");
+            return key?.GetValue("EnableTransparency") is not int value || value != 0;
+        }
+    }
+
+    /// <summary>
+    /// The screen in a rectangle of pixels, as 32-bit BGRA rows from the top, or null when it can't be read. It is the screen
+    /// as shown, clear windows such as the wheel's own included.
+    /// </summary>
+    public static byte[]? Capture(int x, int y, int width, int height)
+    {
+        if (width <= 0 || height <= 0) return null;
+        var screen = GetDC(IntPtr.Zero);
+        var memory = CreateCompatibleDC(screen);
+        var header = new BitmapInfoHeader { Size = Marshal.SizeOf<BitmapInfoHeader>(), Width = width, Height = -height, Planes = 1, BitCount = 32 };
+        var bitmap = CreateDIBSection(screen, ref header, 0, out var bits, IntPtr.Zero, 0);
+        try
+        {
+            if (bitmap == IntPtr.Zero || memory == IntPtr.Zero) return null;
+            var old = SelectObject(memory, bitmap);
+            var copied = BitBlt(memory, 0, 0, width, height, screen, x, y, 0x00CC0020 /* SRCCOPY */);
+            SelectObject(memory, old);
+            if (!copied) return null;
+            var pixels = new byte[width * height * 4];
+            Marshal.Copy(bits, pixels, 0, pixels.Length);
+            return pixels;
+        }
+        finally
+        {
+            if (bitmap != IntPtr.Zero) DeleteObject(bitmap);
+            if (memory != IntPtr.Zero) DeleteDC(memory);
+            ReleaseDC(IntPtr.Zero, screen);
+        }
+    }
+
     /// <summary>Whether the taskbar is light, which decides the colour of the tray icon.</summary>
     public static bool SystemUsesLightTheme
     {
@@ -91,4 +131,21 @@ public static class Desktop
     [DllImport("dwmapi.dll")] private static extern int DwmSetWindowAttribute(IntPtr window, int attribute, ref int value, int size);
 
     [StructLayout(LayoutKind.Sequential)] private struct Point { public int X, Y; }
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct BitmapInfoHeader
+    {
+        public int Size, Width, Height;
+        public short Planes, BitCount;
+        public int Compression, SizeImage, XPelsPerMeter, YPelsPerMeter, ClrUsed, ClrImportant;
+    }
+
+    [DllImport("user32.dll")] private static extern IntPtr GetDC(IntPtr window);
+    [DllImport("user32.dll")] private static extern int ReleaseDC(IntPtr window, IntPtr dc);
+    [DllImport("gdi32.dll")] private static extern IntPtr CreateCompatibleDC(IntPtr dc);
+    [DllImport("gdi32.dll")] private static extern IntPtr CreateDIBSection(IntPtr dc, ref BitmapInfoHeader header, uint usage, out IntPtr bits, IntPtr section, uint offset);
+    [DllImport("gdi32.dll")] private static extern IntPtr SelectObject(IntPtr dc, IntPtr gdiObject);
+    [DllImport("gdi32.dll")] private static extern bool BitBlt(IntPtr dc, int x, int y, int width, int height, IntPtr source, int sourceX, int sourceY, uint operation);
+    [DllImport("gdi32.dll")] private static extern bool DeleteObject(IntPtr gdiObject);
+    [DllImport("gdi32.dll")] private static extern bool DeleteDC(IntPtr dc);
 }

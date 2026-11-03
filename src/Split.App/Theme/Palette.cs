@@ -36,6 +36,16 @@ public static class Palette
     /// </summary>
     public static Color Floating => Motion.IncreaseContrast ? WheelSurface : With(WheelSurface, 0.86);
 
+    /// <summary>Glass behind the wheel, as chosen in Settings, unless Windows asks for no transparency or for high contrast.</summary>
+    public static bool Glass => Settings.GlassWheel && !Motion.ReduceTransparency && !Motion.IncreaseContrast;
+
+    /// <summary>
+    /// The glass, tinted with the chosen colour. The tint never drops below 0.75, enough to keep the ink at 4.5:1 or better,
+    /// and the selected slice and the hub readable, even over a window of the opposite colour; the intensity only raises it
+    /// to 0.9, short of a solid disc.
+    /// </summary>
+    public static Color GlassTint(double intensity) => With(IsWhite ? Colors.White : Colors.Black, 0.75 + 0.15 * Math.Clamp(intensity, 0, 1));
+
     /// <summary>The wheel's lines, names and icons.</summary>
     public static Color WheelInk => IsWhite ? Gray(0.1) : Colors.White;
 
@@ -101,6 +111,11 @@ public static class Look
 public static class Motion
 {
     public static bool ReduceMotion => Desktop.ReduceMotion;
+
+    public static bool ReduceTransparency => !(Transparency ?? Desktop.TransparencyEffects);
+
+    /// <summary>Stands in for Windows' “Transparency effects” while set, so the tests draw glass whatever this PC says.</summary>
+    public static bool? Transparency { get; set; }
 
     public static bool IncreaseContrast => SystemParameters.HighContrast;
 }

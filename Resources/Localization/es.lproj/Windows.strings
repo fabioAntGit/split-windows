@@ -129,3 +129,6 @@
 "Split couldn’t save the PDF." = "Split no pudo guardar el PDF.";
 "You can also drag files from File Explorer onto the grid. Drag pages to change their order." = "También puedes arrastrar archivos del Explorador de archivos a la cuadrícula. Arrastra las páginas para cambiar su orden.";
 "Sound when moving over the wheel" = "Sonido al pasar por la rueda";
+"Glass background" = "Fondo de cristal";
+"Intensity" = "Intensidad";
+"With glass, the desktop shows through the wheel, blurred and tinted with that colour as strongly as the intensity says; with “Transparency effects” off in Windows’ settings, it stays solid." = "Con cristal, el escritorio se ve desenfocado a través de la rueda, teñido de ese color tanto como indique la intensidad; con los “Efectos de transparencia” desactivados en la configuración de Windows, queda opaca.";
