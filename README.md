@@ -27,7 +27,7 @@ On a Mac? **[Split for macOS](https://github.com/fabioAntGit/split)**.
    ```
 
 2. Run it. The release isn't code-signed (see below), so Windows shows **Windows protected your PC** the first time: click **More info**, then **Run anyway**. This is needed only once. The setup installs for you only, in `%LOCALAPPDATA%\Programs\Split`, and never asks for an administrator.
-3. Install the free engines in a terminal (Settings › Engines shows the exact command for whatever is missing):
+3. Install the free engines: in **Settings › Engines**, click **Install**, which opens a PowerShell window where winget downloads them. Or type the commands in a terminal yourself:
 
    ```powershell
    winget install -e --id Gyan.FFmpeg
@@ -143,6 +143,8 @@ Split doesn't use the Internet, and the tests check it rather than just promise 
 - File names never go through a shell.
 
 The tests prove it with a local network tripwire: every hostile document points at it, and the result must be zero connections.
+
+**Installing the engines** is the one time something goes online, and only when you click **Install** in Settings › Engines: winget runs in a PowerShell window you can see and downloads the program from its publisher. Split itself makes no connection.
 
 **An exception you choose:** with “Use Word, Excel and PowerPoint when installed” on, those conversions are done by Microsoft's apps. The file never leaves the PC, but those apps follow their own rules and may, for example, load images or templates the document links to. Turn the option off to use only Split's own converters.
 

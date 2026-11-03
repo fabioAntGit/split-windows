@@ -329,11 +329,22 @@ public static class SettingsUiTests
                 Check(texts.Contains(name), $"no row for {name}");
             Check(texts.Contains("Programs (winget)"), "the programs come from winget");
             var copies = Walk(tab).OfType<SplitButton>().Where(b => (string)b.Content == "Copy Command").ToList();
+            var installs = Walk(tab).OfType<SplitButton>().Where(b => (string)b.Content == "Install").ToList();
+            var winget = Engines.Path("winget") is not null;
             if (Engines.MissingPackagesCommand is { } command)
             {
-                Check(copies.Any(b => b.Face.Background is SolidColorBrush fill && fill.Color == Palette.Selection), "one primary button copies the command that installs what's missing");
+                var primary = winget ? installs : copies;
+                Check(primary.Any(b => b.ToolTip as string == command && b.Face.Background is SolidColorBrush fill && fill.Color == Palette.Selection),
+                      "one primary button installs what's missing (or copies the command without winget)");
                 Check(command.StartsWith("winget install -e --id "), command);
             }
+            if (Engines.Soffice is null)
+                Check(installs.Any(b => b.ToolTip as string == "winget install -e --id TheDocumentFoundation.LibreOffice") == winget, "LibreOffice: Install only where winget is");
+            Check(!installs.Any(b => b.ToolTip as string == CommandLineTool.InstallCommand), "splitapp's PATH line is only copied");
+            var window = Split.Windows.Terminal.Run("winget install -e --id Gyan.FFmpeg");
+            Check(Path.IsPathRooted(window.FileName) && window.FileName.EndsWith(@"\WindowsPowerShell\v1.0\powershell.exe", StringComparison.OrdinalIgnoreCase) && !window.UseShellExecute
+                  && window.ArgumentList.SequenceEqual(["-NoProfile", "-Command", "winget install -e --id Gyan.FFmpeg; cmd /c pause"]),
+                  $"Install runs the command in a PowerShell window that waits for a key: {window.FileName} {string.Join(" ", window.ArgumentList)}");
             if (!CommandLineTool.IsInstalled)
                 Check(copies.Any(b => b.ToolTip as string == CommandLineTool.InstallCommand), "splitapp: the button copies the PowerShell line");
             Check(CommandLineTool.InstallCommand.Contains(CommandLineTool.Folder) && CommandLineTool.InstallCommand.Contains("SetEnvironmentVariable"), "the line adds the program's folder to the user's PATH");

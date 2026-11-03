@@ -105,7 +105,7 @@ public sealed class EnginesTab : TabPage
         if (Engines.MissingPackagesCommand is { } command)
         {
             sections.Add(Kit.Section(null, Kit.Group(CommandRow(L("Install everything that is missing"),
-                Engines.Path("winget") is null ? L("Install App Installer from the Microsoft Store first, then paste the command in PowerShell.") : L("Paste the command in PowerShell or Windows Terminal."),
+                Engines.Path("winget") is null ? L("Install App Installer from the Microsoft Store first, then paste the command in PowerShell.") : L("“Install” opens a PowerShell window where winget downloads them. Or paste the command in PowerShell yourself."),
                 command))));
         }
         sections.Add(Kit.Section(L("Programs (winget)"), Kit.Group(
@@ -134,7 +134,7 @@ public sealed class EnginesTab : TabPage
         return Form([.. sections]);
     }
 
-    private static UIElement Row(string name, string purpose, bool ok, string? install, bool optional = false)
+    private UIElement Row(string name, string purpose, bool ok, string? install, bool optional = false)
     {
         var icon = Kit.Symbol(ok ? "checkmark.circle.fill" : optional ? "minus.circle" : "xmark.circle.fill", 15, secondary: !ok && optional);
         icon.Margin = new Thickness(0, 0, 10, 0);
@@ -149,12 +149,12 @@ public sealed class EnginesTab : TabPage
         {
             var button = new SplitButton(L("Copy Command"), compact: true) { ToolTip = install };
             button.Click += (_, _) => Platform.Current.SetClipboardText(install);
-            copy = button;
+            copy = Runnable(install) ? Buttons(InstallButton(install, ButtonKind.Secondary, compact: true), button) : button;
         }
         return Kit.Row(left, copy, 44);
     }
 
-    private static UIElement CommandRow(string title, string detail, string command)
+    private UIElement CommandRow(string title, string detail, string command)
     {
         var text = new StackPanel { Margin = new Thickness(0, 4, 0, 4) };
         text.Children.Add(Kit.Text(title, 13, weight: FontWeights.Medium));
@@ -162,9 +162,38 @@ public sealed class EnginesTab : TabPage
         code.FontFamily = new System.Windows.Media.FontFamily("Consolas");
         text.Children.Add(code);
         text.Children.Add(Kit.Text(detail, 11, secondary: true));
-        var copy = new SplitButton(L("Copy Command"), ButtonKind.Primary);
+        var runnable = Runnable(command);
+        var copy = new SplitButton(L("Copy Command"), runnable ? ButtonKind.Secondary : ButtonKind.Primary);
         copy.Click += (_, _) => Platform.Current.SetClipboardText(command);
-        return Kit.Row(text, copy, 56);
+        return Kit.Row(text, runnable ? Buttons(InstallButton(command, ButtonKind.Primary), copy) : copy, 56);
+    }
+
+    private static bool Runnable(string command) => command.StartsWith("winget ", StringComparison.Ordinal) && Engines.Path("winget") is not null;
+
+    /// <summary>Runs the winget command where the user can follow it, and checks the programs again once that window closes.</summary>
+    private SplitButton InstallButton(string command, ButtonKind kind, bool compact = false)
+    {
+        var button = new SplitButton(L("Install"), kind, compact) { ToolTip = command };
+        button.Click += (_, _) =>
+        {
+            var process = new System.Diagnostics.Process { StartInfo = Terminal.Run(command), EnableRaisingEvents = true };
+            process.Exited += (_, _) => { process.Dispose(); Dispatcher.BeginInvoke(Rebuild); };
+            try { process.Start(); }
+            // Without PowerShell, the command goes to the clipboard, as Copy Command does.
+            catch (System.ComponentModel.Win32Exception) { process.Dispose(); Platform.Current.SetClipboardText(command); }
+        };
+        return button;
+    }
+
+    private static StackPanel Buttons(params UIElement[] buttons)
+    {
+        var row = new StackPanel { Orientation = Orientation.Horizontal };
+        foreach (var button in buttons)
+        {
+            if (row.Children.Count > 0 && button is FrameworkElement element) element.Margin = new Thickness(6, 0, 0, 0);
+            row.Children.Add(button);
+        }
+        return row;
     }
 }
 

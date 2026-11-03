@@ -89,7 +89,8 @@
 "Nothing on this PC opens %@ files for Split yet. Settings › Engines lists the apps that help." = "Ainda não há nada neste PC que abra ficheiros %@ para o Split. Definições › Motores lista as apps que ajudam.";
 "Office Apps" = "Apps do Office";
 "Office exports PDFs with the exact layout and the file never leaves this PC, but Word and PowerPoint follow their own rules: they may load pictures or templates the document fetches from the Internet. When off, only Split’s own converters are used, and Split removes anything remote first." = "O Office exporta PDFs com o aspeto exato e o ficheiro nunca sai deste PC, mas o Word e o PowerPoint seguem as suas próprias regras: podem carregar imagens ou modelos que o documento vai buscar à Internet. Quando desligado, só se usam os conversores do próprio Split, e o Split remove primeiro tudo o que seja remoto.";
-"Paste the command in PowerShell or Windows Terminal." = "Cola o comando no PowerShell ou no Windows Terminal.";
+"Install" = "Instalar";
+"“Install” opens a PowerShell window where winget downloads them. Or paste the command in PowerShell yourself." = "“Instalar” abre uma janela do PowerShell onde o winget os descarrega. Ou cola tu o comando no PowerShell.";
 "Programs (winget)" = "Programas (winget)";
 "Removing the background of pictures" = "Remover o fundo de imagens";
 "Start with Windows" = "Iniciar com o Windows";

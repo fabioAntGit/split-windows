@@ -21,6 +21,13 @@ public static class Terminal
         ? new ProcessStartInfo("powershell.exe") { WorkingDirectory = folder, UseShellExecute = false }
         : new ProcessStartInfo(windowsTerminal) { ArgumentList = { "-d", folder.Replace(";", "\\;") }, UseShellExecute = false };
 
+    /// <summary>A command the user chose to run, in a PowerShell window they can read and answer; it waits for a key before closing.</summary>
+    public static ProcessStartInfo Run(string command) =>
+        new(Path.Combine(Environment.SystemDirectory, "WindowsPowerShell", "v1.0", "powershell.exe"))
+        {
+            ArgumentList = { "-NoProfile", "-Command", command + "; cmd /c pause" }, UseShellExecute = false,
+        };
+
     private static string? FindOnPath(string program) =>
         (Environment.GetEnvironmentVariable("PATH") ?? "").Split(';', StringSplitOptions.RemoveEmptyEntries)
             .Select(directory => { try { return Path.Combine(directory.Trim('"'), program); } catch (ArgumentException) { return ""; } })
