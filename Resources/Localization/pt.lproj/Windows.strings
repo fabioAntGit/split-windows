@@ -131,4 +131,7 @@
 "Sound when moving over the wheel" = "Som ao passar pela roda";
 "Glass background" = "Fundo de vidro";
 "Intensity" = "Intensidade";
-"With glass, the desktop shows through the wheel, blurred and tinted with that colour as strongly as the intensity says; with “Transparency effects” off in Windows’ settings, it stays solid." = "Com vidro, a secretária vê-se desfocada através da roda, tingida dessa cor tanto quanto a intensidade indicar; com os “Efeitos de transparência” desligados nas definições do Windows, fica sólida.";
+"With glass, the desktop shows through the wheel, blurred and tinted with that colour as strongly as the intensity says." = "Com vidro, a secretária vê-se desfocada através da roda, tingida dessa cor tanto quanto a intensidade indicar.";
+"A contrast theme is on in Windows, so the wheel stays solid." = "Há um tema de contraste ativo no Windows, por isso a roda fica sólida.";
+"“Transparency effects” are off in Windows, so the wheel stays solid. Turn them on to see the glass." = "Os “Efeitos de transparência” estão desligados no Windows, por isso a roda fica sólida. Liga-os para veres o vidro.";
+"Open Windows Settings" = "Abrir as Definições do Windows";

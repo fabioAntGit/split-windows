@@ -69,8 +69,22 @@ public sealed class SettingsWindow : AppWindow
         };
         ActivityLog.Shared.Changed += logChanged;
         clock = new DispatcherTimer(TimeSpan.FromSeconds(1), DispatcherPriority.Background, (_, _) => (pages[SettingsTab.Activity] as ActivityTab)?.Tick(), Dispatcher);
-        Closed += (_, _) => { ActivityLog.Shared.Changed -= logChanged; clock.Stop(); };
+        // Background priority: WPF reads the contrast theme from the same broadcast first.
+        Microsoft.Win32.UserPreferenceChangedEventHandler windows = (_, _) => Dispatcher.BeginInvoke(DispatcherPriority.Background, WindowsLookChanged);
+        Microsoft.Win32.SystemEvents.UserPreferenceChanged += windows;
+        Closed += (_, _) => { ActivityLog.Shared.Changed -= logChanged; clock.Stop(); Microsoft.Win32.SystemEvents.UserPreferenceChanged -= windows; };
         Select(tab);
+    }
+
+    private bool solidWheel = Motion.ReduceTransparency || Motion.IncreaseContrast;
+
+    /// <summary>Windows' settings changed: the Wheels tab is redrawn when the glass can or can no longer show.</summary>
+    public void WindowsLookChanged()
+    {
+        var solid = Motion.ReduceTransparency || Motion.IncreaseContrast;
+        if (solid == solidWheel) return;
+        solidWheel = solid;
+        if (Current == SettingsTab.Wheels) pages[Current].Rebuild();
     }
 
     public SettingsTab Current { get; private set; }

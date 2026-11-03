@@ -549,7 +549,7 @@ public sealed class WheelsTab : TabPage
             highlighted = Math.Min(active.To, items.Count - 1);
         }
         picture.Source = WheelView.Picture(items, shown.Title, wheel == WheelKind.Convert ? source.Title() : "", highlighted, new WheelStyle(PreviewSize, names), shown.Back,
-                                           backdrop: Palette.Glass ? DesktopPicture.Frosted : null);
+                                           backdrop: Palette.Glass ? DesktopPicture.Frosted(Settings.GlassIntensity) : null);
     }
 
     private void PreviewMoved(MouseEventArgs e)
@@ -772,7 +772,22 @@ public sealed class WheelsTab : TabPage
 
         var solidOnly = Motion.ReduceTransparency || Motion.IncreaseContrast;
         var intensity = new SliderBar(Settings.GlassIntensity, 0, 1, L("Intensity")) { Width = 160 };
-        void Enable(bool on) { intensity.IsEnabled = on && !solidOnly; intensity.Opacity = intensity.IsEnabled ? 1 : 0.4; }
+        // While the glass is chosen but Windows keeps the wheel solid: why, and where to change it.
+        var why = new StackPanel { Margin = new Thickness(0, 2, 0, 6) };
+        if (Motion.IncreaseContrast) why.Children.Add(Kit.Text(L("A contrast theme is on in Windows, so the wheel stays solid."), 12));
+        else if (Motion.ReduceTransparency)
+        {
+            why.Children.Add(Kit.Text(L("“Transparency effects” are off in Windows, so the wheel stays solid. Turn them on to see the glass."), 12));
+            var open = new SplitButton(L("Open Windows Settings"), compact: true) { HorizontalAlignment = HorizontalAlignment.Left, Margin = new Thickness(0, 6, 0, 0) };
+            open.Click += (_, _) => Split.Windows.Desktop.OpenColorSettings();
+            why.Children.Add(open);
+        }
+        void Enable(bool on)
+        {
+            intensity.IsEnabled = on && !solidOnly;
+            intensity.Opacity = intensity.IsEnabled ? 1 : 0.4;
+            why.Visibility = on && solidOnly ? Visibility.Visible : Visibility.Collapsed;
+        }
         Enable(Settings.GlassWheel);
         intensity.Changed += value => { Settings.GlassIntensity = value; RefreshPreview(); };
         var glass = new Toggle(Settings.GlassWheel, L("Glass background"));
@@ -789,7 +804,8 @@ public sealed class WheelsTab : TabPage
         }
         stack.Children.Add(Labelled(glass, L("Glass background"), 10));
         stack.Children.Add(Labelled(intensity, L("Intensity"), 4));
-        stack.Children.Add(Kit.Text(L("With glass, the desktop shows through the wheel, blurred and tinted with that colour as strongly as the intensity says; with “Transparency effects” off in Windows’ settings, it stays solid."), 11, secondary: true));
+        stack.Children.Add(why);
+        stack.Children.Add(Kit.Text(L("With glass, the desktop shows through the wheel, blurred and tinted with that colour as strongly as the intensity says."), 11, secondary: true));
         return stack;
     }
 
@@ -898,12 +914,17 @@ public static class DesktopPicture
         }
     }
 
-    private static readonly Lazy<BitmapSource?> Frost = new(() => Picture.Value is { } image ? Split.App.Frost.Square(image) : null);
+    private static (double Intensity, BitmapSource? Picture)? frosted;
 
     public static bool Exists => Picture.Value is not null;
 
-    /// <summary>The picture as the glass shows it, cut to the square the preview shows.</summary>
-    public static BitmapSource? Frosted => Frost.Value;
+    /// <summary>The picture as the glass shows it at an intensity, cut to the square the preview shows; the last one is kept.</summary>
+    public static BitmapSource? Frosted(double intensity)
+    {
+        if (frosted is not { } last || last.Intensity != intensity)
+            frosted = (intensity, Picture.Value is { } image ? Frost.Square(image, intensity) : null);
+        return frosted.Value.Picture;
+    }
 
     public static FrameworkElement Element(double side)
     {

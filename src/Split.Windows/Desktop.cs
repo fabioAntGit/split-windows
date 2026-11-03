@@ -58,6 +58,9 @@ public static class Desktop
         }
     }
 
+    /// <summary>Opens the page of Windows' settings where “Transparency effects” is switched.</summary>
+    public static void OpenColorSettings() => Explorer.Open("ms-settings:colors");
+
     /// <summary>
     /// The screen in a rectangle of pixels, as 32-bit BGRA rows from the top, or null when it can't be read. It is the screen
     /// as shown, clear windows such as the wheel's own included.

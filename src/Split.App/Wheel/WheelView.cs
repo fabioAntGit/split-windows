@@ -519,7 +519,7 @@ public sealed class WheelView : FrameworkElement
             dc.DrawDrawing(frost);
         }
         dc.DrawEllipse(Palette.Brush(Palette.GlassTint(Settings.GlassIntensity)), null, center, disc, disc);
-        dc.DrawEllipse(new LinearGradientBrush(Color.FromArgb(26, 255, 255, 255), Color.FromArgb(0, 255, 255, 255), 90), null, center, disc, disc);
+        dc.DrawEllipse(new LinearGradientBrush(Palette.GlassSheen, Palette.With(Palette.GlassSheen, 0), 90), null, center, disc, disc);
         dc.Pop();
     }
 

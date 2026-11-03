@@ -5,31 +5,32 @@ using Split.Windows;
 namespace Split.App;
 
 /// <summary>
-/// What shows through the glass: the picture behind it, so blurred that only its colours and shapes remain. It is made
-/// small, an average of blocks of about a thirty-second of its side, softened once more, and drawn stretched with smooth
-/// scaling, which finishes the blur for nothing.
+/// What shows through the glass: the picture behind it, blurred as much as the intensity says. It is made small, an average
+/// of blocks from a ninety-sixth of its side (intensity 0, lightly) to a sixteenth (1, only colours and shapes remain),
+/// softened once more, and drawn stretched with smooth scaling, which finishes the blur for nothing.
 /// </summary>
 public static class Frost
 {
     /// <summary>The screen behind a rectangle of pixels, frosted; null when the screen can't be read.</summary>
-    public static BitmapSource? Behind(int x, int y, int width, int height) =>
-        Desktop.Capture(x, y, width, height) is { } pixels ? Blur(pixels, width, height) : null;
+    public static BitmapSource? Behind(int x, int y, int width, int height, double intensity) =>
+        Desktop.Capture(x, y, width, height) is { } pixels ? Blur(pixels, width, height, intensity) : null;
 
     /// <summary>A picture frosted, cut to the middle square first (it fills a square the way the desktop picture does).</summary>
-    public static BitmapSource Square(BitmapSource picture)
+    public static BitmapSource Square(BitmapSource picture, double intensity)
     {
         var side = Math.Min(picture.PixelWidth, picture.PixelHeight);
         var square = new CroppedBitmap(new FormatConvertedBitmap(picture, PixelFormats.Bgra32, null, 0),
                                        new System.Windows.Int32Rect((picture.PixelWidth - side) / 2, (picture.PixelHeight - side) / 2, side, side));
         var pixels = new byte[side * side * 4];
         square.CopyPixels(pixels, side * 4, 0);
-        return Blur(pixels, side, side);
+        return Blur(pixels, side, side, intensity);
     }
 
     /// <summary>BGRA rows from the top, averaged in blocks and softened; the result is opaque.</summary>
-    public static BitmapSource Blur(byte[] bgra, int width, int height)
+    public static BitmapSource Blur(byte[] bgra, int width, int height, double intensity)
     {
-        var block = Math.Max(1, Math.Max(width, height) / 32);
+        var across = 96 * Math.Pow(16.0 / 96, Math.Clamp(intensity, 0, 1));
+        var block = Math.Max(1, (int)Math.Round(Math.Max(width, height) / across));
         var (w, h) = ((width + block - 1) / block, (height + block - 1) / block);
         var sums = new double[w * h * 3];
         var counts = new int[w * h];

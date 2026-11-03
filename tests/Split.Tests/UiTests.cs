@@ -76,8 +76,9 @@ public static class UiTests
                 foreach (var look in LookColors.All)
                 {
                     Look.Color = look;
-                    // The hardest desktop is the opposite of the tint: white behind black glass, black behind white.
-                    var surface = Palette.Over(Palette.GlassTint(0), Palette.IsWhite ? Colors.Black : Colors.White);
+                    // The hardest desktop is the opposite of the tint: white behind black glass, black behind white;
+                    // and the hardest place on black glass is the top, under the sheen.
+                    var surface = Palette.Over(Palette.GlassSheen, Palette.Over(Palette.GlassTint(0), Palette.IsWhite ? Colors.Black : Colors.White));
                     Check(Palette.Contrast(Palette.WheelInk, surface) >= 4.5, $"{look}: names on clear glass: {Palette.Contrast(Palette.WheelInk, surface):0.00}");
                     var slice = Palette.Over(Palette.WheelSelection, surface);
                     Check(Palette.Contrast(Palette.WheelInk, slice) >= 4.5, $"{look}: names on the highlighted slice: {Palette.Contrast(Palette.WheelInk, slice):0.00}");
@@ -87,21 +88,27 @@ public static class UiTests
             finally { Look.Color = color; }
         });
 
-        Test("Interface", "Frost: the picture behind the glass is made small, opaque and smooth, keeping its colours", () => Ui.Run(() =>
+        Test("Interface", "Frost: the picture behind the glass is made small, opaque and smooth, keeping its colours; the intensity sets how much", () => Ui.Run(() =>
         {
             // Left half red, right half blue, 256 pixels square.
             const int side = 256;
             var pixels = new byte[side * side * 4];
             for (var at = 0; at < side * side; at++)
                 (pixels[at * 4], pixels[at * 4 + 2], pixels[at * 4 + 3]) = at % side < side / 2 ? ((byte)0, (byte)255, (byte)255) : ((byte)255, (byte)0, (byte)255);
-            var frosted = Frost.Blur(pixels, side, side);
-            Check(frosted.PixelWidth == 32 && frosted.PixelHeight == 32, $"a thirty-second of the side: {frosted.PixelWidth}×{frosted.PixelHeight}");
-            var (left, middle, right) = (Ui.PixelAt(frosted, 0, 16), Ui.PixelAt(frosted, 16, 16), Ui.PixelAt(frosted, 31, 16));
+            var strong = Frost.Blur(pixels, side, side, 1);
+            Check(strong.PixelWidth == 16 && strong.PixelHeight == 16, $"strong: a sixteenth of the side: {strong.PixelWidth}×{strong.PixelHeight}");
+            var (left, middle, right) = (Ui.PixelAt(strong, 0, 8), Ui.PixelAt(strong, 8, 8), Ui.PixelAt(strong, 15, 8));
             Check(left[2] == 255 && left[0] == 0 && right[0] == 255 && right[2] == 0, "the far edges keep their colour");
             Check(middle[0] is > 60 and < 200 && middle[2] is > 60 and < 200, $"the meeting is blended: {middle[2]},{middle[0]}");
             Check(left[3] == 255 && middle[3] == 255, "opaque");
-            var odd = Frost.Blur(new byte[37 * 5 * 4], 37, 5);
-            Check(odd.PixelWidth == 37 && odd.PixelHeight == 5, "a picture smaller than 32 pixels keeps its size");
+            var light = Frost.Blur(pixels, side, side, 0);
+            Check(light.PixelWidth == 86, $"light: blocks of about a ninety-sixth of the side (3 pixels): {light.PixelWidth}");
+            // 40% across, a fifth of the way from the meeting: still red when light, already mixed when strong.
+            var (lightNear, strongNear) = (Ui.PixelAt(light, light.PixelWidth * 2 / 5, 8), Ui.PixelAt(strong, strong.PixelWidth * 2 / 5, 8));
+            Check(lightNear[2] == 255 && lightNear[0] == 0, $"a light blur keeps the edge sharp: {lightNear[2]},{lightNear[0]}");
+            Check(strongNear[0] > 10, $"a strong one spreads it: {strongNear[2]},{strongNear[0]}");
+            var odd = Frost.Blur(new byte[37 * 5 * 4], 37, 5, 0.5);
+            Check(odd.PixelWidth == 37 && odd.PixelHeight == 5, "a picture too small to shrink keeps its size");
         }));
 
         // A wheel still showing is in what is read, which is why one replaced in place keeps the glass it had.
@@ -483,7 +490,7 @@ public static class UiTests
             var folder = Path.Combine(Fixtures.Root, "_captures-windows");
             Directory.CreateDirectory(folder);
             var made = 0;
-            var (color, glass) = (Settings.LookColor, Settings.GlassWheel);
+            var (color, glass, intensity) = (Settings.LookColor, Settings.GlassWheel, Settings.GlassIntensity);
             (Settings.GlassWheel, Motion.Transparency) = (true, true);
             try
             {
@@ -535,15 +542,25 @@ public static class UiTests
                     Capture(folder, $"tray-menu-{look.Raw()}", new Border { Background = new VisualBrush(menu) { Stretch = Stretch.None, AlignmentX = AlignmentX.Left, AlignmentY = AlignmentY.Top } }, new Size(width, height), ref made);
                     menu.IsOpen = false;
 
-                    // The wheel on glass, over a frosted picture standing in for the desktop.
-                    var behind = Frost.Square(new BitmapImage(new Uri(Fixtures.Url("quadrants.png"))));
-                    var items = Enumerable.Range(0, 6).Select(i => new WheelItem(i.ToString(), $"Item {i}", null));
-                    var wheel = WheelView.Picture(items, "Wheel", "", highlighted: 2, scale: 1, backdrop: behind);
-                    Capture(folder, $"wheel-glass-{look.Raw()}", new Image { Source = wheel }, new Size(wheel.PixelWidth, wheel.PixelHeight), ref made);
+                    // The wheel on glass at both ends of the intensity, over a busy desktop: a 10-pixel check on four colours.
+                    var busy = new byte[400 * 400 * 4];
+                    for (var at = 0; at < 400 * 400; at++)
+                    {
+                        var (x, y) = (at % 400, at / 400);
+                        (busy[at * 4], busy[at * 4 + 1], busy[at * 4 + 2], busy[at * 4 + 3]) =
+                            (x < 200 ? (byte)40 : (byte)230, (x / 10 + y / 10) % 2 == 0 ? (byte)230 : (byte)40, y < 200 ? (byte)230 : (byte)40, (byte)255);
+                    }
+                    foreach (var (name, level) in new[] { ("light", 0.0), ("strong", 1.0) })
+                    {
+                        Settings.GlassIntensity = level;
+                        var items = Enumerable.Range(0, 6).Select(i => new WheelItem(i.ToString(), $"Item {i}", null));
+                        var wheel = WheelView.Picture(items, "Wheel", "", highlighted: 2, scale: 1, backdrop: Frost.Blur(busy, 400, 400, level));
+                        Capture(folder, $"wheel-glass-{name}-{look.Raw()}", new Image { Source = wheel }, new Size(wheel.PixelWidth, wheel.PixelHeight), ref made);
+                    }
                 }
             }
-            finally { (Look.Color, Settings.GlassWheel, Motion.Transparency) = (color, glass, null); }
-            Check(made == 22, $"only {made} captures were made");
+            finally { (Look.Color, Settings.GlassWheel, Settings.GlassIntensity, Motion.Transparency) = (color, glass, intensity, null); }
+            Check(made == 24, $"only {made} captures were made");
         }));
     }
 

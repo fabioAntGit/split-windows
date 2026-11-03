@@ -40,11 +40,14 @@ public static class Palette
     public static bool Glass => Settings.GlassWheel && !Motion.ReduceTransparency && !Motion.IncreaseContrast;
 
     /// <summary>
-    /// The glass, tinted with the chosen colour. The tint never drops below 0.75, enough to keep the ink at 4.5:1 or better,
-    /// and the selected slice and the hub readable, even over a window of the opposite colour; the intensity only raises it
-    /// to 0.9, short of a solid disc.
+    /// The glass, tinted with the chosen colour. The tint never drops below 0.7, enough to keep the ink at 4.5:1 or better,
+    /// and the selected slice and the hub readable, even over a window of the opposite colour under the sheen; the intensity
+    /// raises it to 0.92, short of a solid disc.
     /// </summary>
-    public static Color GlassTint(double intensity) => With(IsWhite ? Colors.White : Colors.Black, 0.75 + 0.15 * Math.Clamp(intensity, 0, 1));
+    public static Color GlassTint(double intensity) => With(IsWhite ? Colors.White : Colors.Black, 0.7 + 0.22 * Math.Clamp(intensity, 0, 1));
+
+    /// <summary>The light along the top of the glass, fading to nothing at the bottom.</summary>
+    public static readonly Color GlassSheen = Color.FromArgb(14, 255, 255, 255);
 
     /// <summary>The wheel's lines, names and icons.</summary>
     public static Color WheelInk => IsWhite ? Gray(0.1) : Colors.White;

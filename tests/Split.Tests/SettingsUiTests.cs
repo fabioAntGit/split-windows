@@ -619,10 +619,22 @@ public static class SettingsUiTests
                 Check(slider.IsEnabled == !Motion.IncreaseContrast, "on: the intensity can be set");
                 slider.Move(0.8);
                 Check(Near(Settings.GlassIntensity, 0.8, 0.01), $"the intensity is saved: {Settings.GlassIntensity}");
-                Check(Texts(tab).Any(t => t.Contains("Transparency effects")), "the note says when it stays solid");
+                bool Offered() { Pump(); return Walk(window.Page(SettingsTab.Wheels)).OfType<SplitButton>().Any(b => b.Content is "Open Windows Settings" && b.IsVisible); }
+                Check(!Offered(), "nothing to fix while the glass can show");
+                // Windows' transparency effects switched off while the window is open: the tab follows at once and says why.
                 Motion.Transparency = false;
-                window.Page(SettingsTab.Wheels).Rebuild();
-                Check(!Named<SliderBar>(window.Page(SettingsTab.Wheels), "Intensity").IsEnabled, "with Windows' transparency effects off the intensity waits too");
+                window.WindowsLookChanged();
+                tab = window.Page(SettingsTab.Wheels);
+                Check(!Named<SliderBar>(tab, "Intensity").IsEnabled, "with Windows' transparency effects off the intensity waits");
+                var why = Motion.IncreaseContrast ? "A contrast theme is on" : "“Transparency effects” are off in Windows";
+                Check(Texts(tab).Any(t => t.StartsWith(why)), "it says why");
+                Check(Motion.IncreaseContrast || Offered(), "and offers Windows' colour settings");
+                Named<Toggle>(tab, "Glass background").Click();
+                Check(!Settings.GlassWheel && !Offered(), "with the glass off, nothing to explain");
+                Named<Toggle>(tab, "Glass background").Click();
+                Motion.Transparency = true;
+                window.WindowsLookChanged();
+                Check(Named<SliderBar>(window.Page(SettingsTab.Wheels), "Intensity").IsEnabled == !Motion.IncreaseContrast, "and turned back on, it can be set again");
             }
             finally
             {

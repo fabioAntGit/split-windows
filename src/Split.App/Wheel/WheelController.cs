@@ -257,7 +257,7 @@ public sealed class WheelController
             win.Content = view;
             // A probe is already under the pointer; a wheel replaced in place moves to where the pointer is now.
             anchor = probing && !request.ClickMode ? Anchor() : Place(win, view.Side, atCursor: !request.ClickMode);
-            if (Palette.Glass) view.Backdrop = kept ?? Frost.Behind((int)placed.X, (int)placed.Y, (int)placed.Width, (int)placed.Height);
+            if (Palette.Glass) view.Backdrop = kept ?? Frost.Behind((int)placed.X, (int)placed.Y, (int)placed.Width, (int)placed.Height, Settings.GlassIntensity);
             Reveal(win, activate: request.ClickMode);
         }
         view.AnimateIn(anchor);

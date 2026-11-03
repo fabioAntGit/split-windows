@@ -154,10 +154,10 @@ public static class Settings
         set => Write("glassWheel", value);
     }
 
-    /// <summary>How strongly the glass takes on the colour, from 0 (clear) to 1 (nearly solid).</summary>
+    /// <summary>How much the glass blurs and takes on the colour, from 0 (lightly) to 1 (nearly solid).</summary>
     public static double GlassIntensity
     {
-        get => Read<double?>("glassIntensity") is { } value && double.IsFinite(value) ? Math.Clamp(value, 0, 1) : 0.25;
+        get => Read<double?>("glassIntensity") is { } value && double.IsFinite(value) ? Math.Clamp(value, 0, 1) : 0.5;
         set => Write("glassIntensity", Math.Clamp(value, 0, 1));
     }
 

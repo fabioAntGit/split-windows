@@ -76,7 +76,7 @@ The preview is the wheel itself, as saved, over your desktop picture. It always 
 - **Size:** from Extra Small to Extra Large. Icons always stay on one ring; a name too long for a small slice ends in “…”, and the centre shows it whole.
 - **Names under icons:** turn it off for a wheel with icons only.
 - **Color:** black (a soft black) or white, for the wheel, the editors and every other window.
-- **Glass background:** the desktop shows through the wheel, blurred and tinted with that colour; **Intensity** sets how strongly. With Windows' **Transparency effects** off (Settings › Personalization › Colors) the wheel stays solid.
+- **Glass background:** the desktop shows through the wheel, blurred and tinted with that colour; **Intensity** goes from a light blur, where the desktop is still recognisable, to a heavy one, nearly solid. With Windows' **Transparency effects** off (Settings › Personalization › Colors) the wheel stays solid, and Settings says so with a button to that page.
 
 ## Editors
 
