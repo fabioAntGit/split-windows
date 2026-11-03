@@ -8,6 +8,10 @@ Drag files, tap a key, drop them on a wheel of conversions and tools. A private,
 
 On a Mac? **[Split for macOS](https://github.com/fabioAntGit/split)**.
 
+<p align="center">
+  <img src="preview/Split-preview.gif" alt="Split app preview" width="800" />
+</p>
+
 ## Requirements
 
 - Windows 10 22H2 (build 19045) or Windows 11, on x64 or arm64
